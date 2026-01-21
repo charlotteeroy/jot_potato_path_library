@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Path Library - Jot Potato</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <style>
+        [v-cloak] { display: none; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div id="app" v-cloak>
+        <!-- Header -->
+        <header class="bg-white shadow-sm border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="text-3xl">🥔</div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-gray-900">Path Library</h1>
+                            <p class="text-sm text-gray-500">Jot Potato - Customer Feedback Intelligence</p>
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button @click="fetchPaths" class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition">
+                            ↻ Refresh
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <!-- Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-8">
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
+                    <div class="text-sm text-gray-500">Total Paths</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                    <div class="text-2xl font-bold text-green-600">{{ stats.active }}</div>
+                    <div class="text-sm text-gray-500">Active</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-100">
+                    <div class="text-2xl font-bold text-yellow-600">{{ stats.on_hold }}</div>
+                    <div class="text-sm text-gray-500">On Hold</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
+                    <div class="text-2xl font-bold text-blue-600">{{ stats.completed }}</div>
+                    <div class="text-sm text-gray-500">Completed</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
+                    <div class="text-2xl font-bold text-gray-400">{{ stats.draft }}</div>
+                    <div class="text-sm text-gray-500">Draft</div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+                <div class="flex flex-wrap gap-2">
+                    <button
+                        v-for="filter in filters"
+                        :key="filter.value"
+                        @click="currentFilter = filter.value"
+                        :class="[
+                            'px-4 py-2 rounded-lg text-sm font-medium transition',
+                            currentFilter === filter.value
+                                ? 'bg-orange-500 text-white'
+                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                        ]"
+                    >
+                        {{ filter.label }}
+                    </button>
+                </div>
+            </div>
+
+            <!-- Path List -->
+            <div class="space-y-4" v-if="!selectedPath">
+                <div
+                    v-for="path in filteredPaths"
+                    :key="path.id"
+                    @click="selectPath(path.id)"
+                    class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-200 cursor-pointer transition"
+                >
+                    <div class="flex items-start justify-between mb-4">
+                        <div class="flex-1">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span :class="statusBadgeClass(path.status)">
+                                    {{ formatStatus(path.status) }}
+                                </span>
+                                <span :class="priorityBadgeClass(path.priority)">
+                                    {{ path.priority }}
+                                </span>
+                            </div>
+                            <h3 class="text-lg font-semibold text-gray-900">{{ path.title }}</h3>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-2xl font-bold text-orange-500">{{ path.progress_percentage }}%</div>
+                            <div class="text-xs text-gray-500">progress</div>
+                        </div>
+                    </div>
+
+                    <!-- Path Chain -->
+                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap">
+                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded">📋 {{ path.issue_title }}</span>
+                        <span class="text-gray-400">→</span>
+                        <span class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">🔍 {{ path.root_cause_title }}</span>
+                        <span class="text-gray-400">→</span>
+                        <span class="bg-green-50 text-green-700 px-2 py-1 rounded">💡 {{ path.initiative_title }}</span>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
+                        <div
+                            class="bg-orange-500 h-2 rounded-full transition-all duration-300"
+                            :style="{ width: path.progress_percentage + '%' }"
+                        ></div>
+                    </div>
+
+                    <div class="flex items-center justify-between text-sm text-gray-500">
+                        <span>{{ path.completed_task_count }} / {{ path.task_count }} tasks completed</span>
+                        <span>Updated {{ formatDate(path.updated_at) }}</span>
+                    </div>
+                </div>
+
+                <div v-if="filteredPaths.length === 0" class="text-center py-12 text-gray-500">
+                    No paths found with the current filter.
+                </div>
+            </div>
+
+            <!-- Path Detail View -->
+            <div v-if="selectedPath" class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <!-- Back Button -->
+                <div class="p-4 border-b border-gray-100">
+                    <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
+                        ← Back to Path Library
+                    </button>
+                </div>
+
+                <!-- Path Header -->
+                <div class="p-6 border-b border-gray-100">
+                    <div class="flex items-start justify-between mb-4">
+                        <div>
+                            <div class="flex items-center gap-3 mb-2">
+                                <span :class="statusBadgeClass(selectedPath.status)">
+                                    {{ formatStatus(selectedPath.status) }}
+                                </span>
+                                <span :class="priorityBadgeClass(selectedPath.priority)">
+                                    {{ selectedPath.priority }}
+                                </span>
+                            </div>
+                            <h2 class="text-2xl font-bold text-gray-900">{{ selectedPath.title }}</h2>
+                            <p class="text-gray-600 mt-2" v-if="selectedPath.goal_statement">
+                                "{{ selectedPath.goal_statement }}"
+                            </p>
+                        </div>
+                        <div class="text-right">
+                            <div class="text-4xl font-bold text-orange-500">{{ selectedPath.progress_percentage }}%</div>
+                            <div class="text-sm text-gray-500">complete</div>
+                        </div>
+                    </div>
+
+                    <!-- Status Update Buttons -->
+                    <div class="flex gap-2 mt-4">
+                        <button
+                            v-for="status in ['draft', 'active', 'on_hold', 'completed']"
+                            :key="status"
+                            @click="updatePathStatus(status)"
+                            :disabled="selectedPath.status === status"
+                            :class="[
+                                'px-4 py-2 rounded-lg text-sm font-medium transition',
+                                selectedPath.status === status
+                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
+                            ]"
+                        >
+                            Set {{ formatStatus(status) }}
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Path Chain Details -->
+                <div class="p-6 border-b border-gray-100 bg-gray-50">
+                    <h3 class="font-semibold text-gray-900 mb-4">Path Journey</h3>
+                    <div class="grid md:grid-cols-3 gap-4">
+                        <!-- Issue -->
+                        <div class="bg-white rounded-lg p-4 border border-red-100">
+                            <div class="text-xs font-medium text-red-600 mb-1">📋 ISSUE</div>
+                            <div class="font-semibold text-gray-900">{{ selectedPath.issue?.title }}</div>
+                            <div class="text-sm text-gray-500 mt-1">{{ selectedPath.issue?.description }}</div>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">
+                                    {{ selectedPath.issue?.feedback_count }} mentions
+                                </span>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+                                    {{ selectedPath.issue?.source_channel }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Root Cause -->
+                        <div class="bg-white rounded-lg p-4 border border-yellow-100">
+                            <div class="text-xs font-medium text-yellow-600 mb-1">🔍 ROOT CAUSE</div>
+                            <div class="font-semibold text-gray-900">{{ selectedPath.root_cause?.title }}</div>
+                            <div class="text-sm text-gray-500 mt-1">{{ selectedPath.root_cause?.description }}</div>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-xs bg-yellow-50 text-yellow-600 px-2 py-1 rounded">
+                                    {{ selectedPath.root_cause?.cause_category }}
+                                </span>
+                                <span v-if="selectedPath.root_cause?.is_ai_generated" class="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded">
+                                    AI Suggested
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Initiative -->
+                        <div class="bg-white rounded-lg p-4 border border-green-100">
+                            <div class="text-xs font-medium text-green-600 mb-1">💡 INITIATIVE</div>
+                            <div class="font-semibold text-gray-900">{{ selectedPath.initiative?.title }}</div>
+                            <div class="text-sm text-gray-500 mt-1">{{ selectedPath.initiative?.description }}</div>
+                            <div class="flex gap-2 mt-2">
+                                <span class="text-xs bg-green-50 text-green-600 px-2 py-1 rounded">
+                                    {{ selectedPath.initiative?.estimated_effort }} effort
+                                </span>
+                                <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
+                                    {{ selectedPath.initiative?.estimated_impact }} impact
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tasks -->
+                <div class="p-6">
+                    <h3 class="font-semibold text-gray-900 mb-4">Implementation Plan</h3>
+                    <div class="space-y-3">
+                        <div
+                            v-for="task in selectedPath.tasks"
+                            :key="task.id"
+                            class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
+                        >
+                            <button
+                                @click="toggleTask(task)"
+                                :class="[
+                                    'w-6 h-6 rounded-full border-2 flex items-center justify-center transition',
+                                    task.status === 'done'
+                                        ? 'bg-green-500 border-green-500 text-white'
+                                        : 'border-gray-300 hover:border-orange-500'
+                                ]"
+                            >
+                                <span v-if="task.status === 'done'">✓</span>
+                            </button>
+                            <div class="flex-1">
+                                <div :class="['font-medium', task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900']">
+                                    {{ task.title }}
+                                </div>
+                                <div class="text-sm text-gray-500" v-if="task.description">{{ task.description }}</div>
+                            </div>
+                            <span :class="taskStatusClass(task.status)">
+                                {{ formatTaskStatus(task.status) }}
+                            </span>
+                        </div>
+                        <div v-if="!selectedPath.tasks?.length" class="text-center py-8 text-gray-500">
+                            No tasks yet. Add tasks to track your implementation progress.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { createApp } = Vue;
+
+        createApp({
+            data() {
+                return {
+                    paths: [],
+                    selectedPath: null,
+                    currentFilter: 'all',
+                    filters: [
+                        { label: 'All', value: 'all' },
+                        { label: 'Active', value: 'active' },
+                        { label: 'On Hold', value: 'on_hold' },
+                        { label: 'Draft', value: 'draft' },
+                        { label: 'Completed', value: 'completed' },
+                    ],
+                    API_BASE: '/api'
+                };
+            },
+            computed: {
+                stats() {
+                    return {
+                        total: this.paths.length,
+                        active: this.paths.filter(p => p.status === 'active').length,
+                        on_hold: this.paths.filter(p => p.status === 'on_hold').length,
+                        completed: this.paths.filter(p => p.status === 'completed').length,
+                        draft: this.paths.filter(p => p.status === 'draft').length,
+                    };
+                },
+                filteredPaths() {
+                    if (this.currentFilter === 'all') return this.paths;
+                    return this.paths.filter(p => p.status === this.currentFilter);
+                }
+            },
+            methods: {
+                async fetchPaths() {
+                    try {
+                        const res = await fetch(`${this.API_BASE}/paths/`);
+                        const data = await res.json();
+                        this.paths = data.results || data;
+                    } catch (err) {
+                        console.error('Error fetching paths:', err);
+                    }
+                },
+                async selectPath(id) {
+                    try {
+                        const res = await fetch(`${this.API_BASE}/paths/${id}/`);
+                        this.selectedPath = await res.json();
+                    } catch (err) {
+                        console.error('Error fetching path details:', err);
+                    }
+                },
+                async updatePathStatus(status) {
+                    try {
+                        const res = await fetch(`${this.API_BASE}/paths/${this.selectedPath.id}/update_status/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status })
+                        });
+                        this.selectedPath = await res.json();
+                        this.fetchPaths();
+                    } catch (err) {
+                        console.error('Error updating status:', err);
+                    }
+                },
+                async toggleTask(task) {
+                    const newStatus = task.status === 'done' ? 'todo' : 'done';
+                    try {
+                        await fetch(`${this.API_BASE}/tasks/${task.id}/`, {
+                            method: 'PATCH',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ status: newStatus })
+                        });
+                        this.selectPath(this.selectedPath.id);
+                        this.fetchPaths();
+                    } catch (err) {
+                        console.error('Error updating task:', err);
+                    }
+                },
+                formatStatus(status) {
+                    const map = {
+                        draft: 'Draft',
+                        active: 'Active',
+                        on_hold: 'On Hold',
+                        completed: 'Completed',
+                        archived: 'Archived'
+                    };
+                    return map[status] || status;
+                },
+                formatTaskStatus(status) {
+                    const map = {
+                        todo: 'To Do',
+                        in_progress: 'In Progress',
+                        blocked: 'Blocked',
+                        done: 'Done'
+                    };
+                    return map[status] || status;
+                },
+                formatDate(dateStr) {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    return date.toLocaleDateString();
+                },
+                statusBadgeClass(status) {
+                    const classes = {
+                        draft: 'bg-gray-100 text-gray-600',
+                        active: 'bg-green-100 text-green-700',
+                        on_hold: 'bg-yellow-100 text-yellow-700',
+                        completed: 'bg-blue-100 text-blue-700',
+                        archived: 'bg-gray-100 text-gray-500'
+                    };
+                    return `px-3 py-1 rounded-full text-xs font-medium ${classes[status] || ''}`;
+                },
+                priorityBadgeClass(priority) {
+                    const classes = {
+                        low: 'bg-gray-100 text-gray-600',
+                        medium: 'bg-blue-100 text-blue-600',
+                        high: 'bg-orange-100 text-orange-600',
+                        critical: 'bg-red-100 text-red-600'
+                    };
+                    return `px-3 py-1 rounded-full text-xs font-medium ${classes[priority] || ''}`;
+                },
+                taskStatusClass(status) {
+                    const classes = {
+                        todo: 'bg-gray-100 text-gray-600',
+                        in_progress: 'bg-blue-100 text-blue-600',
+                        blocked: 'bg-red-100 text-red-600',
+                        done: 'bg-green-100 text-green-600'
+                    };
+                    return `px-2 py-1 rounded text-xs font-medium ${classes[status] || ''}`;
+                }
+            },
+            mounted() {
+                this.fetchPaths();
+            }
+        }).mount('#app');
+    </script>
+</body>
+</html>
