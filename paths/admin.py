@@ -3,7 +3,7 @@ Django Admin configuration for Path Library models.
 """
 
 from django.contrib import admin
-from .models import Issue, RootCause, Initiative, Path, Task, PathComment
+from .models import Issue, RootCause, Initiative, Path, Phase, Step, ActionItem, PathComment
 
 
 class RootCauseInline(admin.TabularInline):
@@ -16,10 +16,22 @@ class InitiativeInline(admin.TabularInline):
     extra = 0
 
 
-class TaskInline(admin.TabularInline):
-    model = Task
+class ActionItemInline(admin.TabularInline):
+    model = ActionItem
     extra = 0
     fields = ['title', 'status', 'order', 'assignee_id', 'due_date']
+
+
+class StepInline(admin.TabularInline):
+    model = Step
+    extra = 0
+    fields = ['title', 'status', 'order']
+
+
+class PhaseInline(admin.TabularInline):
+    model = Phase
+    extra = 0
+    fields = ['title', 'status', 'order']
 
 
 class PathCommentInline(admin.TabularInline):
@@ -57,7 +69,7 @@ class PathAdmin(admin.ModelAdmin):
     list_filter = ['status', 'priority']
     search_fields = ['title', 'goal_statement', 'notes']
     readonly_fields = ['progress_percentage', 'created_at', 'updated_at']
-    inlines = [TaskInline, PathCommentInline]
+    inlines = [PhaseInline, PathCommentInline]
 
     fieldsets = (
         (None, {
@@ -85,10 +97,26 @@ class PathAdmin(admin.ModelAdmin):
     )
 
 
-@admin.register(Task)
-class TaskAdmin(admin.ModelAdmin):
-    list_display = ['title', 'path', 'status', 'order', 'assignee_id', 'due_date']
+@admin.register(Phase)
+class PhaseAdmin(admin.ModelAdmin):
+    list_display = ['title', 'path', 'status', 'order']
     list_filter = ['status', 'path']
+    search_fields = ['title', 'description']
+    inlines = [StepInline]
+
+
+@admin.register(Step)
+class StepAdmin(admin.ModelAdmin):
+    list_display = ['title', 'phase', 'status', 'order']
+    list_filter = ['status', 'phase']
+    search_fields = ['title', 'description']
+    inlines = [ActionItemInline]
+
+
+@admin.register(ActionItem)
+class ActionItemAdmin(admin.ModelAdmin):
+    list_display = ['title', 'step', 'status', 'order', 'assignee_id', 'due_date']
+    list_filter = ['status', 'step']
     search_fields = ['title', 'description']
 
 

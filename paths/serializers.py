@@ -3,39 +3,70 @@ Serializers for the Path Library API.
 """
 
 from rest_framework import serializers
-from .models import Issue, RootCause, Initiative, Path, Task, PathComment
+from .models import Issue, RootCause, Initiative, Path, Phase, Step, ActionItem, PathComment
 
 
-class TaskSerializer(serializers.ModelSerializer):
-    """Serializer for Task model."""
-    subtasks = serializers.SerializerMethodField()
+class ActionItemSerializer(serializers.ModelSerializer):
+    """Serializer for ActionItem model."""
 
     class Meta:
-        model = Task
+        model = ActionItem
         fields = [
-            'id', 'path', 'title', 'description', 'status',
-            'assignee_id', 'order', 'parent_task', 'due_date',
-            'completed_at', 'notes', 'subtasks', 'created_at', 'updated_at'
+            'id', 'step', 'title', 'description', 'status',
+            'assignee_id', 'order', 'due_date', 'completed_at',
+            'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
-    def get_subtasks(self, obj):
-        """Get nested subtasks."""
-        if obj.subtasks.exists():
-            return TaskSerializer(obj.subtasks.all(), many=True).data
-        return []
 
-
-class TaskCreateSerializer(serializers.ModelSerializer):
-    """Serializer for creating tasks."""
+class StepSerializer(serializers.ModelSerializer):
+    """Serializer for Step model with nested action items."""
+    action_items = ActionItemSerializer(many=True, read_only=True)
+    progress = serializers.SerializerMethodField()
 
     class Meta:
-        model = Task
+        model = Step
+        fields = [
+            'id', 'phase', 'title', 'description', 'status',
+            'order', 'action_items', 'progress', 'created_at', 'updated_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_progress(self, obj):
+        return obj.calculate_progress()
+
+
+class PhaseSerializer(serializers.ModelSerializer):
+    """Serializer for Phase model with nested steps."""
+    steps = StepSerializer(many=True, read_only=True)
+    progress = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Phase
         fields = [
             'id', 'path', 'title', 'description', 'status',
-            'assignee_id', 'order', 'parent_task', 'due_date', 'notes'
+            'order', 'steps', 'progress', 'created_at', 'updated_at'
         ]
-        read_only_fields = ['id']
+        read_only_fields = ['id', 'created_at', 'updated_at']
+
+    def get_progress(self, obj):
+        return obj.calculate_progress()
+
+
+class PhaseListSerializer(serializers.ModelSerializer):
+    """Lightweight serializer for listing phases."""
+    step_count = serializers.SerializerMethodField()
+    progress = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Phase
+        fields = ['id', 'title', 'status', 'order', 'step_count', 'progress']
+
+    def get_step_count(self, obj):
+        return obj.steps.count()
+
+    def get_progress(self, obj):
+        return obj.calculate_progress()
 
 
 class PathCommentSerializer(serializers.ModelSerializer):
@@ -117,23 +148,35 @@ class PathListSerializer(serializers.ModelSerializer):
     issue_title = serializers.CharField(source='issue.title', read_only=True)
     root_cause_title = serializers.CharField(source='root_cause.title', read_only=True)
     initiative_title = serializers.CharField(source='initiative.title', read_only=True)
-    task_count = serializers.SerializerMethodField()
-    completed_task_count = serializers.SerializerMethodField()
+    phase_count = serializers.SerializerMethodField()
+    action_item_count = serializers.SerializerMethodField()
+    completed_action_count = serializers.SerializerMethodField()
 
     class Meta:
         model = Path
         fields = [
             'id', 'title', 'status', 'priority', 'progress_percentage',
             'issue_title', 'root_cause_title', 'initiative_title',
-            'task_count', 'completed_task_count',
+            'phase_count', 'action_item_count', 'completed_action_count',
             'started_at', 'target_completion_date', 'created_at', 'updated_at'
         ]
 
-    def get_task_count(self, obj):
-        return obj.tasks.count()
+    def get_phase_count(self, obj):
+        return obj.phases.count()
 
-    def get_completed_task_count(self, obj):
-        return obj.tasks.filter(status='done').count()
+    def get_action_item_count(self, obj):
+        count = 0
+        for phase in obj.phases.all():
+            for step in phase.steps.all():
+                count += step.action_items.count()
+        return count
+
+    def get_completed_action_count(self, obj):
+        count = 0
+        for phase in obj.phases.all():
+            for step in phase.steps.all():
+                count += step.action_items.filter(status='done').count()
+        return count
 
 
 class PathDetailSerializer(serializers.ModelSerializer):
@@ -141,7 +184,7 @@ class PathDetailSerializer(serializers.ModelSerializer):
     issue = IssueSerializer(read_only=True)
     root_cause = RootCauseSerializer(read_only=True)
     initiative = InitiativeSerializer(read_only=True)
-    tasks = TaskSerializer(many=True, read_only=True)
+    phases = PhaseSerializer(many=True, read_only=True)
     comments = PathCommentSerializer(many=True, read_only=True)
 
     class Meta:
@@ -151,7 +194,7 @@ class PathDetailSerializer(serializers.ModelSerializer):
             'started_at', 'target_completion_date', 'completed_at',
             'progress_percentage', 'baseline_metric', 'current_metric',
             'organization_id', 'owner_id', 'notes',
-            'issue', 'root_cause', 'initiative', 'tasks', 'comments',
+            'issue', 'root_cause', 'initiative', 'phases', 'comments',
             'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'progress_percentage', 'created_at', 'updated_at']
@@ -159,7 +202,6 @@ class PathDetailSerializer(serializers.ModelSerializer):
 
 class PathCreateSerializer(serializers.ModelSerializer):
     """Serializer for creating a new path."""
-    tasks = TaskCreateSerializer(many=True, required=False)
 
     class Meta:
         model = Path
@@ -167,18 +209,9 @@ class PathCreateSerializer(serializers.ModelSerializer):
             'id', 'title', 'goal_statement', 'status', 'priority',
             'issue', 'root_cause', 'initiative',
             'target_completion_date', 'organization_id', 'owner_id',
-            'notes', 'baseline_metric', 'tasks'
+            'notes', 'baseline_metric'
         ]
         read_only_fields = ['id']
-
-    def create(self, validated_data):
-        tasks_data = validated_data.pop('tasks', [])
-        path = Path.objects.create(**validated_data)
-
-        for task_data in tasks_data:
-            Task.objects.create(path=path, **task_data)
-
-        return path
 
 
 class PathUpdateSerializer(serializers.ModelSerializer):
@@ -196,7 +229,6 @@ class PathUpdateSerializer(serializers.ModelSerializer):
 class PathStatusUpdateSerializer(serializers.Serializer):
     """Serializer for updating path status."""
     status = serializers.ChoiceField(choices=[
-        ('draft', 'Draft'),
         ('active', 'Active'),
         ('on_hold', 'On Hold'),
         ('completed', 'Completed'),
@@ -204,12 +236,8 @@ class PathStatusUpdateSerializer(serializers.Serializer):
     ])
 
 
-class BulkTaskUpdateSerializer(serializers.Serializer):
-    """Serializer for bulk updating task statuses."""
-    task_ids = serializers.ListField(
-        child=serializers.UUIDField(),
-        min_length=1
-    )
+class ActionItemStatusSerializer(serializers.Serializer):
+    """Serializer for updating action item status."""
     status = serializers.ChoiceField(choices=[
         ('todo', 'To Do'),
         ('in_progress', 'In Progress'),

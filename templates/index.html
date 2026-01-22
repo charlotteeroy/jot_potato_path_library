@@ -134,7 +134,7 @@
                     </div>
 
                     <div class="flex items-center justify-between text-sm text-gray-500">
-                        <span>{{ path.completed_task_count }} / {{ path.task_count }} tasks completed</span>
+                        <span>{{ path.completed_action_count }} / {{ path.action_item_count }} actions completed</span>
                         <span>Updated {{ formatDate(path.updated_at) }}</span>
                     </div>
                 </div>
@@ -246,38 +246,72 @@
                     </div>
                 </div>
 
-                <!-- Tasks -->
+                <!-- Implementation Plan: Phases > Steps > Action Items -->
                 <div class="p-6">
                     <h3 class="font-semibold text-gray-900 mb-4">Implementation Plan</h3>
-                    <div class="space-y-3">
-                        <div
-                            v-for="task in selectedPath.tasks"
-                            :key="task.id"
-                            class="flex items-center gap-4 p-4 bg-gray-50 rounded-lg"
-                        >
-                            <button
-                                @click="toggleTask(task)"
-                                :class="[
-                                    'w-6 h-6 rounded-full border-2 flex items-center justify-center transition',
-                                    task.status === 'done'
-                                        ? 'bg-green-500 border-green-500 text-white'
-                                        : 'border-gray-300 hover:border-orange-500'
-                                ]"
-                            >
-                                <span v-if="task.status === 'done'">✓</span>
-                            </button>
-                            <div class="flex-1">
-                                <div :class="['font-medium', task.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900']">
-                                    {{ task.title }}
+
+                    <!-- Phases -->
+                    <div class="space-y-6">
+                        <div v-for="phase in selectedPath.phases" :key="phase.id" class="border border-gray-200 rounded-lg overflow-hidden">
+                            <!-- Phase Header -->
+                            <div class="bg-gray-100 px-4 py-3 flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span :class="phaseStatusClass(phase.status)">{{ formatStatus(phase.status) }}</span>
+                                    <h4 class="font-semibold text-gray-900">{{ phase.title }}</h4>
                                 </div>
-                                <div class="text-sm text-gray-500" v-if="task.description">{{ task.description }}</div>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                        <div class="bg-orange-500 h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
+                                    </div>
+                                    <span class="text-sm text-gray-600">{{ phase.progress }}%</span>
+                                </div>
                             </div>
-                            <span :class="taskStatusClass(task.status)">
-                                {{ formatTaskStatus(task.status) }}
-                            </span>
+
+                            <!-- Steps within Phase -->
+                            <div class="divide-y divide-gray-100">
+                                <div v-for="step in phase.steps" :key="step.id" class="p-4">
+                                    <!-- Step Header -->
+                                    <div class="flex items-center justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <span :class="stepStatusClass(step.status)">{{ formatStatus(step.status) }}</span>
+                                            <span class="font-medium text-gray-800">{{ step.title }}</span>
+                                        </div>
+                                        <span class="text-xs text-gray-500">{{ step.progress }}% complete</span>
+                                    </div>
+                                    <p class="text-sm text-gray-500 mb-3" v-if="step.description">{{ step.description }}</p>
+
+                                    <!-- Action Items within Step -->
+                                    <div class="ml-4 space-y-2">
+                                        <div
+                                            v-for="item in step.action_items"
+                                            :key="item.id"
+                                            class="flex items-center gap-3 p-2 bg-gray-50 rounded"
+                                        >
+                                            <button
+                                                @click="toggleActionItem(item)"
+                                                :class="[
+                                                    'w-5 h-5 rounded border-2 flex items-center justify-center transition text-xs',
+                                                    item.status === 'done'
+                                                        ? 'bg-green-500 border-green-500 text-white'
+                                                        : 'border-gray-300 hover:border-orange-500'
+                                                ]"
+                                            >
+                                                <span v-if="item.status === 'done'">✓</span>
+                                            </button>
+                                            <span :class="['flex-1 text-sm', item.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-700']">
+                                                {{ item.title }}
+                                            </span>
+                                            <span :class="actionStatusClass(item.status)" class="text-xs">
+                                                {{ formatStatus(item.status) }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div v-if="!selectedPath.tasks?.length" class="text-center py-8 text-gray-500">
-                            No tasks yet. Add tasks to track your implementation progress.
+
+                        <div v-if="!selectedPath.phases?.length" class="text-center py-8 text-gray-500">
+                            No implementation plan yet.
                         </div>
                     </div>
                 </div>
@@ -365,18 +399,16 @@
                         console.error('Error updating status:', err);
                     }
                 },
-                async toggleTask(task) {
-                    const newStatus = task.status === 'done' ? 'todo' : 'done';
+                async toggleActionItem(item) {
                     try {
-                        await fetch(`${this.API_BASE}/tasks/${task.id}/`, {
-                            method: 'PATCH',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ status: newStatus })
+                        await fetch(`${this.API_BASE}/action-items/${item.id}/toggle_status/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' }
                         });
                         this.selectPath(this.selectedPath.id);
                         this.fetchPaths();
                     } catch (err) {
-                        console.error('Error updating task:', err);
+                        console.error('Error updating action item:', err);
                     }
                 },
                 formatStatus(status) {
@@ -385,12 +417,7 @@
                         active: 'Active',
                         on_hold: 'On Hold',
                         completed: 'Completed',
-                        archived: 'Archived'
-                    };
-                    return map[status] || status;
-                },
-                formatTaskStatus(status) {
-                    const map = {
+                        archived: 'Archived',
                         todo: 'To Do',
                         in_progress: 'In Progress',
                         blocked: 'Blocked',
@@ -430,6 +457,33 @@
                         done: 'bg-green-100 text-green-600'
                     };
                     return `px-2 py-1 rounded text-xs font-medium ${classes[status] || ''}`;
+                },
+                phaseStatusClass(status) {
+                    const classes = {
+                        todo: 'bg-gray-200 text-gray-700',
+                        in_progress: 'bg-blue-200 text-blue-800',
+                        blocked: 'bg-red-200 text-red-800',
+                        done: 'bg-green-200 text-green-800'
+                    };
+                    return `px-2 py-1 rounded text-xs font-semibold ${classes[status] || ''}`;
+                },
+                stepStatusClass(status) {
+                    const classes = {
+                        todo: 'bg-gray-100 text-gray-600',
+                        in_progress: 'bg-blue-100 text-blue-700',
+                        blocked: 'bg-red-100 text-red-700',
+                        done: 'bg-green-100 text-green-700'
+                    };
+                    return `px-2 py-0.5 rounded text-xs ${classes[status] || ''}`;
+                },
+                actionStatusClass(status) {
+                    const classes = {
+                        todo: 'text-gray-500',
+                        in_progress: 'text-blue-600',
+                        blocked: 'text-red-600',
+                        done: 'text-green-600'
+                    };
+                    return classes[status] || '';
                 }
             },
             mounted() {

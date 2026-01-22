@@ -9,7 +9,9 @@ from .views import (
     RootCauseViewSet,
     InitiativeViewSet,
     PathViewSet,
-    TaskViewSet,
+    PhaseViewSet,
+    StepViewSet,
+    ActionItemViewSet,
     PathCommentViewSet,
 )
 
@@ -18,7 +20,9 @@ router.register(r'issues', IssueViewSet, basename='issue')
 router.register(r'root-causes', RootCauseViewSet, basename='rootcause')
 router.register(r'initiatives', InitiativeViewSet, basename='initiative')
 router.register(r'paths', PathViewSet, basename='path')
-router.register(r'tasks', TaskViewSet, basename='task')
+router.register(r'phases', PhaseViewSet, basename='phase')
+router.register(r'steps', StepViewSet, basename='step')
+router.register(r'action-items', ActionItemViewSet, basename='actionitem')
 router.register(r'comments', PathCommentViewSet, basename='comment')
 
 urlpatterns = [

@@ -2,7 +2,12 @@
 Path Library Models for Jot Potato.
 
 A Path represents the complete journey from identifying an issue to implementing a solution:
-Issue -> Root Cause -> Initiative -> Implementation Plan (with Tasks)
+Issue -> Root Cause -> Initiative -> Implementation Plan
+
+Implementation Plan hierarchy:
+- Phases (major stages of the plan)
+  - Steps (specific activities within a phase)
+    - Action Items (individual tasks to complete a step)
 """
 
 import uuid
@@ -11,15 +16,14 @@ from django.db import models
 
 class PathStatus(models.TextChoices):
     """Status choices for a Path."""
-    DRAFT = 'draft', 'Draft'
     ACTIVE = 'active', 'Active'
     ON_HOLD = 'on_hold', 'On Hold'
     COMPLETED = 'completed', 'Completed'
     ARCHIVED = 'archived', 'Archived'
 
 
-class TaskStatus(models.TextChoices):
-    """Status choices for a Task."""
+class ItemStatus(models.TextChoices):
+    """Status choices for Phases, Steps, and Action Items."""
     TODO = 'todo', 'To Do'
     IN_PROGRESS = 'in_progress', 'In Progress'
     BLOCKED = 'blocked', 'Blocked'
@@ -97,11 +101,6 @@ class RootCause(BaseModel):
     """
     Reason why an issue is happening.
     Can be AI-generated or human input.
-
-    Examples for issue "Response time is too long":
-    - "Not enough staff"
-    - "No proper process, team is disorganized"
-    - "Lack of communication"
     """
     issue = models.ForeignKey(
         Issue,
@@ -111,23 +110,9 @@ class RootCause(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # Source of the root cause
-    is_ai_generated = models.BooleanField(
-        default=False,
-        help_text="Whether this was suggested by AI"
-    )
-    confidence_score = models.FloatField(
-        null=True,
-        blank=True,
-        help_text="AI confidence score (0-1)"
-    )
-
-    # Fishbone/Ishikawa diagram category
-    cause_category = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Category in root cause analysis (e.g., People, Process, Tools, Environment)"
-    )
+    is_ai_generated = models.BooleanField(default=False)
+    confidence_score = models.FloatField(null=True, blank=True)
+    cause_category = models.CharField(max_length=50, blank=True)
 
     class Meta:
         ordering = ['-confidence_score', '-created_at']
@@ -137,14 +122,7 @@ class RootCause(BaseModel):
 
 
 class Initiative(BaseModel):
-    """
-    Solution to fix a root cause.
-
-    Examples for root cause "No proper process, team is disorganized":
-    - "Clarify roles & responsibilities"
-    - "Build a team onboarding kit"
-    - "Monitor Team Performance"
-    """
+    """Solution to fix a root cause."""
     root_cause = models.ForeignKey(
         RootCause,
         on_delete=models.CASCADE,
@@ -153,24 +131,9 @@ class Initiative(BaseModel):
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # Classification
-    initiative_type = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Type of fix (e.g., quick_win, process_change, training, tool_implementation)"
-    )
-    estimated_effort = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Estimated effort (e.g., small, medium, large)"
-    )
-    estimated_impact = models.CharField(
-        max_length=50,
-        blank=True,
-        help_text="Expected impact (e.g., low, medium, high)"
-    )
-
-    # AI suggestions
+    initiative_type = models.CharField(max_length=50, blank=True)
+    estimated_effort = models.CharField(max_length=50, blank=True)
+    estimated_impact = models.CharField(max_length=50, blank=True)
     is_ai_generated = models.BooleanField(default=False)
 
     class Meta:
@@ -183,47 +146,22 @@ class Initiative(BaseModel):
 class Path(BaseModel):
     """
     A Path is the complete improvement journey.
-
-    It connects: Issue -> Root Cause -> Initiative -> Implementation Plan
-
-    Paths are stored in the Path Library and can be:
-    - Active (being worked on)
-    - On Hold (paused)
-    - Completed (done)
-    - Archived (no longer relevant)
+    All paths in the library are active (implementation has started).
     """
     # The selected chain
-    issue = models.ForeignKey(
-        Issue,
-        on_delete=models.PROTECT,
-        related_name='paths'
-    )
-    root_cause = models.ForeignKey(
-        RootCause,
-        on_delete=models.PROTECT,
-        related_name='paths'
-    )
-    initiative = models.ForeignKey(
-        Initiative,
-        on_delete=models.PROTECT,
-        related_name='paths'
-    )
+    issue = models.ForeignKey(Issue, on_delete=models.PROTECT, related_name='paths')
+    root_cause = models.ForeignKey(RootCause, on_delete=models.PROTECT, related_name='paths')
+    initiative = models.ForeignKey(Initiative, on_delete=models.PROTECT, related_name='paths')
 
     # Path metadata
-    title = models.CharField(
-        max_length=255,
-        help_text="Custom title for this path"
-    )
-    goal_statement = models.TextField(
-        blank=True,
-        help_text="e.g., 'My path to success will improve customer satisfaction to increase growth and revenue'"
-    )
+    title = models.CharField(max_length=255)
+    goal_statement = models.TextField(blank=True)
 
-    # Status tracking
+    # Status tracking - default is ACTIVE (no drafts)
     status = models.CharField(
         max_length=20,
         choices=PathStatus.choices,
-        default=PathStatus.DRAFT
+        default=PathStatus.ACTIVE
     )
     priority = models.CharField(
         max_length=20,
@@ -237,32 +175,16 @@ class Path(BaseModel):
     completed_at = models.DateTimeField(null=True, blank=True)
 
     # Progress tracking
-    progress_percentage = models.PositiveSmallIntegerField(
-        default=0,
-        help_text="Completion percentage (0-100)"
-    )
+    progress_percentage = models.PositiveSmallIntegerField(default=0)
 
     # Impact measurement
-    baseline_metric = models.JSONField(
-        null=True,
-        blank=True,
-        help_text="Baseline measurements before starting"
-    )
-    current_metric = models.JSONField(
-        null=True,
-        blank=True,
-        help_text="Current measurements for comparison"
-    )
+    baseline_metric = models.JSONField(null=True, blank=True)
+    current_metric = models.JSONField(null=True, blank=True)
 
     # Organization and ownership
     organization_id = models.UUIDField(null=True, blank=True, db_index=True)
-    owner_id = models.UUIDField(
-        null=True,
-        blank=True,
-        help_text="User who owns this path"
-    )
+    owner_id = models.UUIDField(null=True, blank=True)
 
-    # Notes
     notes = models.TextField(blank=True)
 
     class Meta:
@@ -278,12 +200,17 @@ class Path(BaseModel):
         return self.title
 
     def calculate_progress(self):
-        """Calculate progress based on completed tasks."""
-        tasks = self.tasks.all()
-        if not tasks.exists():
+        """Calculate progress based on completed action items across all phases."""
+        total_items = 0
+        completed_items = 0
+        for phase in self.phases.all():
+            for step in phase.steps.all():
+                items = step.action_items.all()
+                total_items += items.count()
+                completed_items += items.filter(status=ItemStatus.DONE).count()
+        if total_items == 0:
             return 0
-        completed = tasks.filter(status=TaskStatus.DONE).count()
-        return int((completed / tasks.count()) * 100)
+        return int((completed_items / total_items) * 100)
 
     def update_progress(self):
         """Update the progress percentage."""
@@ -291,51 +218,108 @@ class Path(BaseModel):
         self.save(update_fields=['progress_percentage', 'updated_at'])
 
 
-class Task(BaseModel):
+class Phase(BaseModel):
     """
-    Individual task within a Path's implementation plan.
+    A major stage in the implementation plan.
 
-    Examples for initiative "Clarify roles & responsibilities":
-    - "Define Success Criteria for roles"
-    - "Document ownership"
-    - "Map responsibilities for roles"
+    Examples:
+    - "Phase 1: Research & Planning"
+    - "Phase 2: Implementation"
+    - "Phase 3: Training & Rollout"
     """
-    path = models.ForeignKey(
-        Path,
-        on_delete=models.CASCADE,
-        related_name='tasks'
-    )
+    path = models.ForeignKey(Path, on_delete=models.CASCADE, related_name='phases')
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
 
-    # Status and assignment
     status = models.CharField(
         max_length=20,
-        choices=TaskStatus.choices,
-        default=TaskStatus.TODO
+        choices=ItemStatus.choices,
+        default=ItemStatus.TODO
     )
-    assignee_id = models.UUIDField(
-        null=True,
-        blank=True,
-        help_text="User assigned to this task"
-    )
-
-    # Ordering and hierarchy
     order = models.PositiveIntegerField(default=0)
-    parent_task = models.ForeignKey(
-        'self',
-        on_delete=models.CASCADE,
-        null=True,
-        blank=True,
-        related_name='subtasks'
-    )
 
-    # Timeline
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.path.title[:20]})"
+
+    def calculate_progress(self):
+        """Calculate phase progress based on completed action items."""
+        total_items = 0
+        completed_items = 0
+        for step in self.steps.all():
+            items = step.action_items.all()
+            total_items += items.count()
+            completed_items += items.filter(status=ItemStatus.DONE).count()
+        if total_items == 0:
+            return 0
+        return int((completed_items / total_items) * 100)
+
+
+class Step(BaseModel):
+    """
+    A specific activity within a phase.
+
+    Examples for phase "Research & Planning":
+    - "Research inventory software options"
+    - "Compare vendor pricing"
+    - "Get team input on requirements"
+    """
+    phase = models.ForeignKey(Phase, on_delete=models.CASCADE, related_name='steps')
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=ItemStatus.choices,
+        default=ItemStatus.TODO
+    )
+    order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['order', 'created_at']
+
+    def __str__(self):
+        return self.title
+
+    def calculate_progress(self):
+        """Calculate step progress based on completed action items."""
+        items = self.action_items.all()
+        if not items.exists():
+            return 0
+        completed = items.filter(status=ItemStatus.DONE).count()
+        return int((completed / items.count()) * 100)
+
+
+class ActionItem(BaseModel):
+    """
+    Individual task to complete a step.
+
+    Examples for step "Research inventory software options":
+    - "Review MarketMan features and pricing"
+    - "Review BlueCart features and pricing"
+    - "Review Lightspeed features and pricing"
+    - "Create comparison spreadsheet"
+    """
+    step = models.ForeignKey(Step, on_delete=models.CASCADE, related_name='action_items')
+
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+
+    status = models.CharField(
+        max_length=20,
+        choices=ItemStatus.choices,
+        default=ItemStatus.TODO
+    )
+    assignee_id = models.UUIDField(null=True, blank=True)
+
+    order = models.PositiveIntegerField(default=0)
     due_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
-    # Notes
     notes = models.TextField(blank=True)
 
     class Meta:
@@ -346,19 +330,20 @@ class Task(BaseModel):
 
     def save(self, *args, **kwargs):
         super().save(*args, **kwargs)
-        # Update path progress when task is saved
-        if self.path_id:
-            self.path.update_progress()
+        # Update path progress when action item is saved
+        if self.step_id and self.step.phase_id and self.step.phase.path_id:
+            self.step.phase.path.update_progress()
+
+
+# Keep Task as alias for backward compatibility
+Task = ActionItem
+TaskStatus = ItemStatus
 
 
 class PathComment(BaseModel):
     """Comments and updates on a Path for team collaboration."""
-    path = models.ForeignKey(
-        Path,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    author_id = models.UUIDField(help_text="User who wrote the comment")
+    path = models.ForeignKey(Path, on_delete=models.CASCADE, related_name='comments')
+    author_id = models.UUIDField()
     content = models.TextField()
 
     class Meta:

@@ -9,25 +9,23 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 
-from .models import Issue, RootCause, Initiative, Path, Task, PathComment, PathStatus
+from .models import Issue, RootCause, Initiative, Path, Phase, Step, ActionItem, PathComment, PathStatus, ItemStatus
 from .serializers import (
     IssueSerializer, IssueListSerializer,
     RootCauseSerializer, RootCauseListSerializer,
     InitiativeSerializer, InitiativeListSerializer,
     PathListSerializer, PathDetailSerializer, PathCreateSerializer, PathUpdateSerializer,
-    PathStatusUpdateSerializer, BulkTaskUpdateSerializer,
-    TaskSerializer, TaskCreateSerializer,
+    PathStatusUpdateSerializer, ActionItemStatusSerializer,
+    PhaseSerializer, PhaseListSerializer,
+    StepSerializer,
+    ActionItemSerializer,
     PathCommentSerializer,
 )
-from .filters import PathFilter, IssueFilter, TaskFilter
+from .filters import PathFilter, IssueFilter
 
 
 class IssueViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Issues.
-
-    Issues are problem statements extracted from customer feedback.
-    """
+    """API endpoint for Issues."""
     queryset = Issue.objects.all()
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = IssueFilter
@@ -42,11 +40,7 @@ class IssueViewSet(viewsets.ModelViewSet):
 
 
 class RootCauseViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Root Causes.
-
-    Root Causes explain why an issue is happening.
-    """
+    """API endpoint for Root Causes."""
     queryset = RootCause.objects.select_related('issue').prefetch_related('initiatives')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['issue', 'is_ai_generated', 'cause_category']
@@ -61,11 +55,7 @@ class RootCauseViewSet(viewsets.ModelViewSet):
 
 
 class InitiativeViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Initiatives.
-
-    Initiatives are solutions to fix root causes.
-    """
+    """API endpoint for Initiatives."""
     queryset = Initiative.objects.select_related('root_cause', 'root_cause__issue')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['root_cause', 'initiative_type', 'estimated_effort', 'estimated_impact', 'is_ai_generated']
@@ -84,13 +74,13 @@ class PathViewSet(viewsets.ModelViewSet):
     API endpoint for the Path Library.
 
     A Path represents the complete improvement journey:
-    Issue -> Root Cause -> Initiative -> Tasks
-
-    Paths can be filtered by status, priority, organization, and owner.
+    Issue -> Root Cause -> Initiative -> Implementation Plan (Phases > Steps > Actions)
     """
     queryset = Path.objects.select_related(
         'issue', 'root_cause', 'initiative'
-    ).prefetch_related('tasks', 'comments')
+    ).prefetch_related(
+        'phases__steps__action_items', 'comments'
+    )
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = PathFilter
     search_fields = ['title', 'goal_statement', 'notes']
@@ -108,12 +98,7 @@ class PathViewSet(viewsets.ModelViewSet):
 
     @action(detail=True, methods=['post'])
     def update_status(self, request, pk=None):
-        """
-        Update the status of a path.
-
-        POST /api/paths/{id}/update_status/
-        Body: {"status": "active"}
-        """
+        """Update the status of a path."""
         path = self.get_object()
         serializer = PathStatusUpdateSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -123,7 +108,6 @@ class PathViewSet(viewsets.ModelViewSet):
 
         path.status = new_status
 
-        # Set timestamps based on status changes
         if new_status == PathStatus.ACTIVE and old_status != PathStatus.ACTIVE:
             if not path.started_at:
                 path.started_at = timezone.now()
@@ -134,87 +118,22 @@ class PathViewSet(viewsets.ModelViewSet):
         return Response(PathDetailSerializer(path).data)
 
     @action(detail=True, methods=['post'])
-    def add_task(self, request, pk=None):
-        """
-        Add a task to a path.
-
-        POST /api/paths/{id}/add_task/
-        Body: {"title": "Task title", "description": "...", ...}
-        """
-        path = self.get_object()
-        serializer = TaskCreateSerializer(data={**request.data, 'path': path.id})
-        serializer.is_valid(raise_exception=True)
-        task = serializer.save()
-        return Response(TaskSerializer(task).data, status=status.HTTP_201_CREATED)
-
-    @action(detail=True, methods=['post'])
     def add_comment(self, request, pk=None):
-        """
-        Add a comment to a path.
-
-        POST /api/paths/{id}/add_comment/
-        Body: {"author_id": "uuid", "content": "Comment text"}
-        """
+        """Add a comment to a path."""
         path = self.get_object()
         serializer = PathCommentSerializer(data={**request.data, 'path': path.id})
         serializer.is_valid(raise_exception=True)
         comment = serializer.save()
         return Response(PathCommentSerializer(comment).data, status=status.HTTP_201_CREATED)
 
-    @action(detail=True, methods=['get'])
-    def tasks(self, request, pk=None):
-        """
-        Get all tasks for a path.
-
-        GET /api/paths/{id}/tasks/
-        """
-        path = self.get_object()
-        tasks = path.tasks.filter(parent_task__isnull=True)  # Only top-level tasks
-        serializer = TaskSerializer(tasks, many=True)
-        return Response(serializer.data)
-
-    @action(detail=True, methods=['post'])
-    def bulk_update_tasks(self, request, pk=None):
-        """
-        Bulk update task statuses.
-
-        POST /api/paths/{id}/bulk_update_tasks/
-        Body: {"task_ids": ["uuid1", "uuid2"], "status": "done"}
-        """
-        path = self.get_object()
-        serializer = BulkTaskUpdateSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-
-        task_ids = serializer.validated_data['task_ids']
-        new_status = serializer.validated_data['status']
-
-        # Only update tasks belonging to this path
-        updated = path.tasks.filter(id__in=task_ids).update(
-            status=new_status,
-            completed_at=timezone.now() if new_status == 'done' else None
-        )
-
-        # Recalculate progress
-        path.update_progress()
-
-        return Response({
-            'updated_count': updated,
-            'progress_percentage': path.progress_percentage
-        })
-
     @action(detail=False, methods=['get'])
     def library_stats(self, request):
-        """
-        Get statistics for the path library.
-
-        GET /api/paths/library_stats/
-        """
+        """Get statistics for the path library."""
         queryset = self.filter_queryset(self.get_queryset())
 
         stats = {
             'total_paths': queryset.count(),
             'by_status': {
-                'draft': queryset.filter(status=PathStatus.DRAFT).count(),
                 'active': queryset.filter(status=PathStatus.ACTIVE).count(),
                 'on_hold': queryset.filter(status=PathStatus.ON_HOLD).count(),
                 'completed': queryset.filter(status=PathStatus.COMPLETED).count(),
@@ -229,57 +148,70 @@ class PathViewSet(viewsets.ModelViewSet):
         return Response(stats)
 
 
-class TaskViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Tasks.
-
-    Tasks are individual items in a path's implementation plan.
-    """
-    queryset = Task.objects.select_related('path', 'parent_task')
+class PhaseViewSet(viewsets.ModelViewSet):
+    """API endpoint for Phases."""
+    queryset = Phase.objects.select_related('path').prefetch_related('steps__action_items')
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_class = TaskFilter
+    filterset_fields = ['path', 'status']
     search_fields = ['title', 'description']
-    ordering_fields = ['order', 'created_at', 'due_date', 'status']
     ordering = ['order', 'created_at']
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update']:
-            return TaskCreateSerializer
-        return TaskSerializer
+        if self.action == 'list':
+            return PhaseListSerializer
+        return PhaseSerializer
+
+
+class StepViewSet(viewsets.ModelViewSet):
+    """API endpoint for Steps."""
+    queryset = Step.objects.select_related('phase', 'phase__path').prefetch_related('action_items')
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['phase', 'status']
+    search_fields = ['title', 'description']
+    ordering = ['order', 'created_at']
+    serializer_class = StepSerializer
+
+
+class ActionItemViewSet(viewsets.ModelViewSet):
+    """API endpoint for Action Items."""
+    queryset = ActionItem.objects.select_related('step', 'step__phase', 'step__phase__path')
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['step', 'status', 'assignee_id']
+    search_fields = ['title', 'description']
+    ordering = ['order', 'created_at']
+    serializer_class = ActionItemSerializer
 
     @action(detail=True, methods=['post'])
-    def complete(self, request, pk=None):
-        """
-        Mark a task as complete.
-
-        POST /api/tasks/{id}/complete/
-        """
-        task = self.get_object()
-        task.status = 'done'
-        task.completed_at = timezone.now()
-        task.save()
-        return Response(TaskSerializer(task).data)
+    def toggle_status(self, request, pk=None):
+        """Toggle action item between todo and done."""
+        item = self.get_object()
+        if item.status == ItemStatus.DONE:
+            item.status = ItemStatus.TODO
+            item.completed_at = None
+        else:
+            item.status = ItemStatus.DONE
+            item.completed_at = timezone.now()
+        item.save()
+        return Response(ActionItemSerializer(item).data)
 
     @action(detail=True, methods=['post'])
-    def reorder(self, request, pk=None):
-        """
-        Reorder a task.
+    def update_status(self, request, pk=None):
+        """Update action item status."""
+        item = self.get_object()
+        serializer = ActionItemStatusSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
 
-        POST /api/tasks/{id}/reorder/
-        Body: {"order": 2}
-        """
-        task = self.get_object()
-        new_order = request.data.get('order')
-        if new_order is not None:
-            task.order = int(new_order)
-            task.save(update_fields=['order', 'updated_at'])
-        return Response(TaskSerializer(task).data)
+        item.status = serializer.validated_data['status']
+        if item.status == ItemStatus.DONE:
+            item.completed_at = timezone.now()
+        else:
+            item.completed_at = None
+        item.save()
+        return Response(ActionItemSerializer(item).data)
 
 
 class PathCommentViewSet(viewsets.ModelViewSet):
-    """
-    API endpoint for Path Comments.
-    """
+    """API endpoint for Path Comments."""
     queryset = PathComment.objects.select_related('path')
     serializer_class = PathCommentSerializer
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
