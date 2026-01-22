@@ -8,6 +8,12 @@
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         [v-cloak] { display: none; }
+        .line-clamp-2 {
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
     </style>
 </head>
 <body class="bg-gray-50 min-h-screen">
@@ -35,10 +41,14 @@
 
         <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
             <!-- Stats -->
-            <div class="grid grid-cols-3 gap-4 mb-8">
+            <div class="grid grid-cols-4 gap-4 mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
                     <div class="text-sm text-gray-500">Total Paths</div>
+                </div>
+                <div class="bg-white rounded-xl p-4 shadow-sm border border-green-100">
+                    <div class="text-2xl font-bold text-green-600">{{ stats.active }}</div>
+                    <div class="text-sm text-gray-500">Active</div>
                 </div>
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-100">
                     <div class="text-2xl font-bold text-yellow-600">{{ stats.on_hold }}</div>
@@ -52,7 +62,6 @@
 
             <!-- Search and Filters -->
             <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
-                <!-- Search Box -->
                 <div class="mb-4">
                     <div class="relative">
                         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
@@ -60,19 +69,12 @@
                             v-model="searchQuery"
                             @input="debouncedSearch"
                             type="text"
-                            placeholder="Search paths by title, goal, issue, root cause, or initiative..."
+                            placeholder="Search paths..."
                             class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
                         />
-                        <button
-                            v-if="searchQuery"
-                            @click="clearSearch"
-                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        >
-                            ✕
-                        </button>
+                        <button v-if="searchQuery" @click="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
                     </div>
                 </div>
-                <!-- Status Filters -->
                 <div class="flex flex-wrap gap-2">
                     <button
                         v-for="filter in filters"
@@ -80,13 +82,9 @@
                         @click="currentFilter = filter.value"
                         :class="[
                             'px-4 py-2 rounded-lg text-sm font-medium transition',
-                            currentFilter === filter.value
-                                ? 'bg-orange-500 text-white'
-                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            currentFilter === filter.value ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         ]"
-                    >
-                        {{ filter.label }}
-                    </button>
+                    >{{ filter.label }}</button>
                 </div>
             </div>
 
@@ -101,14 +99,11 @@
                     <div class="flex items-start justify-between mb-4">
                         <div class="flex-1">
                             <div class="flex items-center gap-3 mb-2">
-                                <span :class="statusBadgeClass(path.status)">
-                                    {{ formatStatus(path.status) }}
-                                </span>
-                                <span :class="priorityBadgeClass(path.priority)">
-                                    {{ path.priority }}
-                                </span>
+                                <span :class="statusBadgeClass(path.status)">{{ formatStatus(path.status) }}</span>
+                                <span :class="priorityBadgeClass(path.priority)">{{ path.priority }}</span>
                             </div>
                             <h3 class="text-lg font-semibold text-gray-900">{{ path.title }}</h3>
+                            <p v-if="path.project_summary" class="text-sm text-gray-500 mt-1 line-clamp-2">{{ path.project_summary }}</p>
                         </div>
                         <div class="text-right">
                             <div class="text-2xl font-bold text-orange-500">{{ path.progress_percentage }}%</div>
@@ -116,41 +111,30 @@
                         </div>
                     </div>
 
-                    <!-- Path Chain -->
-                    <div class="flex items-center gap-2 text-sm text-gray-600 mb-4 flex-wrap">
-                        <span class="bg-red-50 text-red-700 px-2 py-1 rounded">📋 {{ path.issue_title }}</span>
-                        <span class="text-gray-400">→</span>
-                        <span class="bg-yellow-50 text-yellow-700 px-2 py-1 rounded">🔍 {{ path.root_cause_title }}</span>
-                        <span class="text-gray-400">→</span>
-                        <span class="bg-green-50 text-green-700 px-2 py-1 rounded">💡 {{ path.initiative_title }}</span>
-                    </div>
-
-                    <!-- Progress Bar -->
                     <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
-                        <div
-                            class="bg-orange-500 h-2 rounded-full transition-all duration-300"
-                            :style="{ width: path.progress_percentage + '%' }"
-                        ></div>
+                        <div class="bg-orange-500 h-2 rounded-full transition-all" :style="{ width: path.progress_percentage + '%' }"></div>
                     </div>
 
                     <div class="flex items-center justify-between text-sm text-gray-500">
-                        <span>{{ path.completed_action_count }} / {{ path.action_item_count }} actions completed</span>
-                        <span>Updated {{ formatDate(path.updated_at) }}</span>
+                        <div class="flex items-center gap-4">
+                            <span>{{ path.completed_action_count }} / {{ path.action_item_count }} actions</span>
+                            <span v-if="path.duration_days" class="flex items-center gap-1">⏱ {{ path.duration_days }} days</span>
+                            <span v-if="path.team_size" class="flex items-center gap-1">👥 {{ path.team_size }}</span>
+                        </div>
+                        <span v-if="path.status === 'completed' && path.completed_at">Completed {{ formatDate(path.completed_at) }}</span>
+                        <span v-else-if="path.status === 'on_hold' && path.paused_at">Paused {{ formatDate(path.paused_at) }}</span>
+                        <span v-else>Updated {{ formatDate(path.updated_at) }}</span>
                     </div>
                 </div>
-
-                <div v-if="filteredPaths.length === 0" class="text-center py-12 text-gray-500">
-                    No paths found with the current filter.
-                </div>
+                <div v-if="filteredPaths.length === 0" class="text-center py-12 text-gray-500">No paths found.</div>
             </div>
 
             <!-- Path Detail View -->
             <div v-if="selectedPath" class="bg-white rounded-xl shadow-sm border border-gray-100">
                 <!-- Back Button -->
-                <div class="p-4 border-b border-gray-100">
-                    <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">
-                        ← Back to Path Library
-                    </button>
+                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
+                    <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">← Back to Path Library</button>
+                    <button v-if="selectedPath.status === 'on_hold'" @click="updatePathStatus('active')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">Reopen this path</button>
                 </div>
 
                 <!-- Path Header -->
@@ -158,17 +142,11 @@
                     <div class="flex items-start justify-between mb-4">
                         <div>
                             <div class="flex items-center gap-3 mb-2">
-                                <span :class="statusBadgeClass(selectedPath.status)">
-                                    {{ formatStatus(selectedPath.status) }}
-                                </span>
-                                <span :class="priorityBadgeClass(selectedPath.priority)">
-                                    {{ selectedPath.priority }}
-                                </span>
+                                <span :class="statusBadgeClass(selectedPath.status)">{{ formatStatus(selectedPath.status) }}</span>
+                                <span :class="priorityBadgeClass(selectedPath.priority)">{{ selectedPath.priority }}</span>
                             </div>
                             <h2 class="text-2xl font-bold text-gray-900">{{ selectedPath.title }}</h2>
-                            <p class="text-gray-600 mt-2" v-if="selectedPath.goal_statement">
-                                "{{ selectedPath.goal_statement }}"
-                            </p>
+                            <p class="text-gray-600 mt-2" v-if="selectedPath.goal_statement">{{ selectedPath.goal_statement }}</p>
                         </div>
                         <div class="text-right">
                             <div class="text-4xl font-bold text-orange-500">{{ selectedPath.progress_percentage }}%</div>
@@ -176,147 +154,410 @@
                         </div>
                     </div>
 
-                    <!-- Status Update Buttons -->
-                    <div class="flex gap-2 mt-4">
-                        <button
-                            v-for="status in ['draft', 'active', 'on_hold', 'completed']"
-                            :key="status"
-                            @click="updatePathStatus(status)"
-                            :disabled="selectedPath.status === status"
-                            :class="[
-                                'px-4 py-2 rounded-lg text-sm font-medium transition',
-                                selectedPath.status === status
-                                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                                    : 'bg-gray-100 hover:bg-gray-200 text-gray-700'
-                            ]"
-                        >
-                            Set {{ formatStatus(status) }}
-                        </button>
+                    <!-- Metadata Row -->
+                    <div class="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 text-sm">
+                        <div v-if="selectedPath.status === 'on_hold' && selectedPath.paused_at" class="flex items-center gap-2">
+                            <span class="text-gray-400">📅</span>
+                            <div><div class="text-xs text-gray-400">Paused On</div><div class="font-medium text-gray-900">{{ formatDateLong(selectedPath.paused_at) }}</div></div>
+                        </div>
+                        <div v-if="selectedPath.status === 'completed' && selectedPath.completed_at" class="flex items-center gap-2">
+                            <span class="text-gray-400">📅</span>
+                            <div><div class="text-xs text-gray-400">Completed On</div><div class="font-medium text-gray-900">{{ formatDateLong(selectedPath.completed_at) }}</div></div>
+                        </div>
+                        <div v-if="selectedPath.duration_days" class="flex items-center gap-2">
+                            <span class="text-gray-400">⏱</span>
+                            <div><div class="text-xs text-gray-400">Duration</div><div class="font-medium text-gray-900">{{ selectedPath.duration_days }} days</div></div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-400">👥</span>
+                            <div><div class="text-xs text-gray-400">Team Size</div><div class="font-medium text-gray-900">{{ selectedPath.team_size || 1 }} members</div></div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Path Chain Details -->
+                <!-- Project Summary Section -->
+                <div v-if="selectedPath.project_summary || selectedPath.status === 'on_hold' || selectedPath.status === 'completed'" class="p-6 border-b border-gray-100">
+                    <div class="flex items-center justify-between cursor-pointer" @click="summaryExpanded = !summaryExpanded">
+                        <h3 class="font-semibold text-gray-900">Project Summary</h3>
+                        <span class="text-gray-400">{{ summaryExpanded ? '▼' : '▶' }}</span>
+                    </div>
+                    <div v-show="summaryExpanded" class="mt-4 space-y-4">
+                        <p v-if="selectedPath.project_summary" class="text-gray-600">{{ selectedPath.project_summary }}</p>
+
+                        <!-- On Hold Info -->
+                        <div v-if="selectedPath.status === 'on_hold'" class="space-y-4">
+                            <div v-if="selectedPath.on_hold_reason" class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
+                                <div class="flex items-center gap-2 mb-2"><span class="text-yellow-500">💡</span><h4 class="font-semibold text-gray-900">Why it's on hold</h4></div>
+                                <p class="text-gray-700">{{ selectedPath.on_hold_reason }}</p>
+                            </div>
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div v-if="selectedPath.what_was_started" class="bg-green-50 rounded-lg p-4 border border-green-100">
+                                    <div class="flex items-center gap-2 mb-2"><span class="text-green-500">✓</span><h4 class="font-semibold text-gray-900">What you started to solve</h4></div>
+                                    <p class="text-gray-700">{{ selectedPath.what_was_started }}</p>
+                                </div>
+                                <div v-if="selectedPath.on_hold_issues_faced" class="bg-red-50 rounded-lg p-4 border border-red-100">
+                                    <div class="flex items-center gap-2 mb-2"><span class="text-red-500">⚠</span><h4 class="font-semibold text-gray-900">Issues you faced</h4></div>
+                                    <p class="text-gray-700">{{ selectedPath.on_hold_issues_faced }}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Completed Info -->
+                        <div v-if="selectedPath.status === 'completed'" class="space-y-4">
+                            <div class="grid md:grid-cols-2 gap-4">
+                                <div v-if="selectedPath.what_was_solved?.length" class="bg-green-50 rounded-lg p-4 border border-green-100">
+                                    <div class="flex items-center gap-2 mb-2"><span class="text-green-500">✓</span><h4 class="font-semibold text-gray-900">What you solved</h4></div>
+                                    <ul class="space-y-1"><li v-for="item in selectedPath.what_was_solved" class="text-gray-700 flex items-start gap-2"><span class="text-green-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                                </div>
+                                <div v-if="selectedPath.completed_issues_faced?.length" class="bg-red-50 rounded-lg p-4 border border-red-100">
+                                    <div class="flex items-center gap-2 mb-2"><span class="text-red-500">⚠</span><h4 class="font-semibold text-gray-900">Issues you faced</h4></div>
+                                    <ul class="space-y-1"><li v-for="item in selectedPath.completed_issues_faced" class="text-gray-700 flex items-start gap-2"><span class="text-red-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                                </div>
+                            </div>
+                            <div v-if="selectedPath.key_learnings?.length" class="bg-purple-50 rounded-lg p-4 border border-purple-100">
+                                <div class="flex items-center gap-2 mb-2"><span class="text-purple-500">💡</span><h4 class="font-semibold text-gray-900">Key Learnings & Insights</h4></div>
+                                <ul class="space-y-1"><li v-for="item in selectedPath.key_learnings" class="text-gray-700 flex items-start gap-2"><span class="text-purple-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Path Journey (Issue -> Root Cause -> Initiative) -->
                 <div class="p-6 border-b border-gray-100 bg-gray-50">
                     <h3 class="font-semibold text-gray-900 mb-4">Path Journey</h3>
                     <div class="grid md:grid-cols-3 gap-4">
-                        <!-- Issue -->
                         <div class="bg-white rounded-lg p-4 border border-red-100">
                             <div class="text-xs font-medium text-red-600 mb-1">📋 ISSUE</div>
                             <div class="font-semibold text-gray-900">{{ selectedPath.issue?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.issue?.description }}</div>
-                            <div class="flex gap-2 mt-2">
-                                <span class="text-xs bg-red-50 text-red-600 px-2 py-1 rounded">
-                                    {{ selectedPath.issue?.feedback_count }} mentions
-                                </span>
-                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
-                                    {{ selectedPath.issue?.source_channel }}
-                                </span>
-                            </div>
                         </div>
-
-                        <!-- Root Cause -->
                         <div class="bg-white rounded-lg p-4 border border-yellow-100">
                             <div class="text-xs font-medium text-yellow-600 mb-1">🔍 ROOT CAUSE</div>
                             <div class="font-semibold text-gray-900">{{ selectedPath.root_cause?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.root_cause?.description }}</div>
-                            <div class="flex gap-2 mt-2">
-                                <span class="text-xs bg-yellow-50 text-yellow-600 px-2 py-1 rounded">
-                                    {{ selectedPath.root_cause?.cause_category }}
-                                </span>
-                                <span v-if="selectedPath.root_cause?.is_ai_generated" class="text-xs bg-purple-50 text-purple-600 px-2 py-1 rounded">
-                                    AI Suggested
-                                </span>
-                            </div>
                         </div>
-
-                        <!-- Initiative -->
                         <div class="bg-white rounded-lg p-4 border border-green-100">
                             <div class="text-xs font-medium text-green-600 mb-1">💡 INITIATIVE</div>
                             <div class="font-semibold text-gray-900">{{ selectedPath.initiative?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.initiative?.description }}</div>
-                            <div class="flex gap-2 mt-2">
-                                <span class="text-xs bg-green-50 text-green-600 px-2 py-1 rounded">
-                                    {{ selectedPath.initiative?.estimated_effort }} effort
-                                </span>
-                                <span class="text-xs bg-blue-50 text-blue-600 px-2 py-1 rounded">
-                                    {{ selectedPath.initiative?.estimated_impact }} impact
-                                </span>
-                            </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Implementation Plan: Phases > Steps > Action Items -->
+                <!-- Implementation Plan Summary (Clickable) -->
                 <div class="p-6">
-                    <h3 class="font-semibold text-gray-900 mb-4">Implementation Plan</h3>
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="font-semibold text-gray-900">Implementation Plan</h3>
+                        <button @click="showImplementationModal = true" class="text-sm text-orange-500 hover:text-orange-600 font-medium">View Full Plan →</button>
+                    </div>
 
-                    <!-- Phases -->
-                    <div class="space-y-6">
-                        <div v-for="phase in selectedPath.phases" :key="phase.id" class="border border-gray-200 rounded-lg overflow-hidden">
-                            <!-- Phase Header -->
-                            <div class="bg-gray-100 px-4 py-3 flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <span :class="phaseStatusClass(phase.status)">{{ formatStatus(phase.status) }}</span>
-                                    <h4 class="font-semibold text-gray-900">{{ phase.title }}</h4>
-                                </div>
+                    <!-- Compact Phase Overview -->
+                    <div class="space-y-3">
+                        <div v-for="phase in selectedPath.phases" :key="phase.id"
+                            @click="openPhaseModal(phase)"
+                            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
+                            <div class="flex items-center gap-3">
+                                <span :class="phaseStatusClass(phase.status)">{{ formatStatus(phase.status) }}</span>
+                                <span class="font-medium text-gray-900">{{ phase.title }}</span>
+                                <span class="text-sm text-gray-500">({{ phase.steps?.length || 0 }} steps)</span>
+                            </div>
+                            <div class="flex items-center gap-4">
+                                <span v-if="phase.assignee_name" class="text-sm text-gray-500">{{ phase.assignee_name }}</span>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-24 bg-gray-200 rounded-full h-2">
+                                    <div class="w-20 bg-gray-200 rounded-full h-2">
                                         <div class="bg-orange-500 h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
                                     </div>
-                                    <span class="text-sm text-gray-600">{{ phase.progress }}%</span>
+                                    <span class="text-sm text-gray-600 w-10">{{ phase.progress }}%</span>
                                 </div>
-                            </div>
-
-                            <!-- Steps within Phase -->
-                            <div class="divide-y divide-gray-100">
-                                <div v-for="step in phase.steps" :key="step.id" class="p-4">
-                                    <!-- Step Header -->
-                                    <div class="flex items-center justify-between mb-3">
-                                        <div class="flex items-center gap-2">
-                                            <span :class="stepStatusClass(step.status)">{{ formatStatus(step.status) }}</span>
-                                            <span class="font-medium text-gray-800">{{ step.title }}</span>
-                                        </div>
-                                        <span class="text-xs text-gray-500">{{ step.progress }}% complete</span>
-                                    </div>
-                                    <p class="text-sm text-gray-500 mb-3" v-if="step.description">{{ step.description }}</p>
-
-                                    <!-- Action Items within Step -->
-                                    <div class="ml-4 space-y-2">
-                                        <div
-                                            v-for="item in step.action_items"
-                                            :key="item.id"
-                                            class="flex items-center gap-3 p-2 bg-gray-50 rounded"
-                                        >
-                                            <button
-                                                @click="toggleActionItem(item)"
-                                                :class="[
-                                                    'w-5 h-5 rounded border-2 flex items-center justify-center transition text-xs',
-                                                    item.status === 'done'
-                                                        ? 'bg-green-500 border-green-500 text-white'
-                                                        : 'border-gray-300 hover:border-orange-500'
-                                                ]"
-                                            >
-                                                <span v-if="item.status === 'done'">✓</span>
-                                            </button>
-                                            <span :class="['flex-1 text-sm', item.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-700']">
-                                                {{ item.title }}
-                                            </span>
-                                            <span :class="actionStatusClass(item.status)" class="text-xs">
-                                                {{ formatStatus(item.status) }}
-                                            </span>
-                                        </div>
-                                    </div>
-                                </div>
+                                <span v-if="phase.due_date" class="text-sm text-gray-500">{{ formatDate(phase.due_date) }}</span>
+                                <span class="text-gray-400">›</span>
                             </div>
                         </div>
-
-                        <div v-if="!selectedPath.phases?.length" class="text-center py-8 text-gray-500">
-                            No implementation plan yet.
-                        </div>
+                        <div v-if="!selectedPath.phases?.length" class="text-center py-8 text-gray-500">No implementation plan yet.</div>
                     </div>
                 </div>
             </div>
         </main>
+
+        <!-- Implementation Plan Modal -->
+        <div v-if="showImplementationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-xl font-bold text-gray-900">Implementation Plan</h2>
+                    <button @click="showImplementationModal = false" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <p class="text-gray-600 mb-6" v-if="selectedPath.project_summary">{{ selectedPath.project_summary }}</p>
+
+                    <!-- Phases Table -->
+                    <table class="w-full">
+                        <thead>
+                            <tr class="text-left text-sm text-gray-500 border-b border-gray-200">
+                                <th class="pb-3 font-medium">Phase</th>
+                                <th class="pb-3 font-medium">Description</th>
+                                <th class="pb-3 font-medium">Assignee</th>
+                                <th class="pb-3 font-medium">Progress</th>
+                                <th class="pb-3 font-medium">Due date</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template v-for="phase in selectedPath.phases" :key="phase.id">
+                                <!-- Phase Row -->
+                                <tr @click="togglePhaseExpand(phase.id)" class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer">
+                                    <td class="py-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-gray-400">{{ expandedPhases[phase.id] ? '▼' : '›' }}</span>
+                                            <span class="text-purple-500">📋</span>
+                                            <span class="font-medium">{{ phase.title }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 text-sm text-gray-600 max-w-xs">{{ phase.description || 'No description' }}</td>
+                                    <td class="py-4">
+                                        <div v-if="phase.assignee_name" class="flex items-center gap-2">
+                                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-medium">{{ phase.assignee_name.charAt(0) }}</div>
+                                            <span class="text-sm">{{ phase.assignee_name }}</span>
+                                        </div>
+                                        <span v-else class="text-gray-400 text-sm">—</span>
+                                    </td>
+                                    <td class="py-4">
+                                        <div class="flex items-center gap-2">
+                                            <span class="text-sm">{{ phase.progress }}%</span>
+                                            <div class="w-24 bg-gray-200 rounded-full h-2">
+                                                <div class="bg-indigo-500 h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="py-4 text-sm text-gray-600">
+                                        <span v-if="phase.due_date">📅 {{ formatDate(phase.due_date) }}</span>
+                                        <span v-else class="text-gray-400">—</span>
+                                    </td>
+                                </tr>
+                                <!-- Steps (when expanded) -->
+                                <template v-if="expandedPhases[phase.id]">
+                                    <tr v-for="step in phase.steps" :key="step.id" @click.stop="openStepModal(step, phase)" class="border-b border-gray-50 bg-gray-50 hover:bg-gray-100 cursor-pointer">
+                                        <td class="py-3 pl-10">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-blue-500">📝</span>
+                                                <span class="text-sm">{{ step.title }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3 text-sm text-gray-500">{{ step.description || '' }}</td>
+                                        <td class="py-3">
+                                            <div v-if="step.assignee_name" class="flex items-center gap-2">
+                                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs">{{ step.assignee_name.charAt(0) }}</div>
+                                                <span class="text-sm">{{ step.assignee_name }}</span>
+                                            </div>
+                                        </td>
+                                        <td class="py-3">
+                                            <span class="text-sm text-gray-500">{{ step.progress }}%</span>
+                                        </td>
+                                        <td class="py-3 text-sm text-gray-500">
+                                            <span v-if="step.due_date">{{ formatDate(step.due_date) }}</span>
+                                        </td>
+                                    </tr>
+                                    <!-- Action Items -->
+                                    <template v-for="step in phase.steps" :key="'actions-' + step.id">
+                                        <tr v-for="item in step.action_items" :key="item.id" @click.stop="openActionModal(item, step, phase)" class="border-b border-gray-50 bg-white hover:bg-orange-50 cursor-pointer">
+                                            <td class="py-2 pl-16">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-orange-400">⚡</span>
+                                                    <span class="text-sm" :class="item.status === 'done' ? 'text-gray-400 line-through' : ''">{{ item.title }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2 text-sm text-gray-400">{{ item.description || '' }}</td>
+                                            <td class="py-2">
+                                                <div v-if="item.assignee_name" class="flex items-center gap-2">
+                                                    <div class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xs">{{ item.assignee_name.charAt(0) }}</div>
+                                                    <span class="text-xs">{{ item.assignee_name }}</span>
+                                                </div>
+                                            </td>
+                                            <td class="py-2">
+                                                <span :class="actionStatusClass(item.status)" class="text-xs">{{ formatStatus(item.status) }}</span>
+                                            </td>
+                                            <td class="py-2 text-xs text-gray-500">
+                                                <span v-if="item.due_date">{{ formatDate(item.due_date) }}</span>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                </template>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Phase Detail Modal -->
+        <div v-if="selectedPhase" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-purple-500 text-2xl">📋</span>
+                        <h2 class="text-xl font-bold text-gray-900">{{ selectedPhase.title }}</h2>
+                    </div>
+                    <button @click="selectedPhase = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div class="grid grid-cols-3 gap-4 mb-6">
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-gray-900">{{ selectedPhase.progress }}%</div>
+                            <div class="text-sm text-gray-500">Progress</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-gray-900">{{ selectedPhase.steps?.length || 0 }}</div>
+                            <div class="text-sm text-gray-500">Steps</div>
+                        </div>
+                        <div class="text-center p-4 bg-gray-50 rounded-lg">
+                            <div class="text-2xl font-bold text-gray-900">{{ countPhaseActions(selectedPhase) }}</div>
+                            <div class="text-sm text-gray-500">Actions</div>
+                        </div>
+                    </div>
+
+                    <div v-if="selectedPhase.description" class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+                        <p class="text-gray-600">{{ selectedPhase.description }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-6 mb-6 text-sm">
+                        <div v-if="selectedPhase.assignee_name" class="flex items-center gap-2">
+                            <span class="text-gray-500">Assignee:</span>
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs">{{ selectedPhase.assignee_name.charAt(0) }}</div>
+                                <span class="font-medium">{{ selectedPhase.assignee_name }}</span>
+                            </div>
+                        </div>
+                        <div v-if="selectedPhase.due_date" class="flex items-center gap-2">
+                            <span class="text-gray-500">Due:</span>
+                            <span class="font-medium">{{ formatDateLong(selectedPhase.due_date) }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500">Status:</span>
+                            <span :class="phaseStatusClass(selectedPhase.status)">{{ formatStatus(selectedPhase.status) }}</span>
+                        </div>
+                    </div>
+
+                    <h4 class="font-medium text-gray-900 mb-3">Steps</h4>
+                    <div class="space-y-2">
+                        <div v-for="step in selectedPhase.steps" :key="step.id" @click="openStepModal(step, selectedPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <span :class="stepStatusClass(step.status)">{{ formatStatus(step.status) }}</span>
+                                <span>{{ step.title }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-gray-500">
+                                <span>{{ step.action_items?.length || 0 }} actions</span>
+                                <span>{{ step.progress }}%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step Detail Modal -->
+        <div v-if="selectedStep" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-blue-500 text-2xl">📝</span>
+                        <div>
+                            <h2 class="text-xl font-bold text-gray-900">{{ selectedStep.title }}</h2>
+                            <p class="text-sm text-gray-500">{{ selectedStepParentPhase?.title }}</p>
+                        </div>
+                    </div>
+                    <button @click="selectedStep = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+                <div class="p-6 overflow-y-auto flex-1">
+                    <div v-if="selectedStep.description" class="mb-6">
+                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
+                        <p class="text-gray-600">{{ selectedStep.description }}</p>
+                    </div>
+
+                    <div class="flex items-center gap-6 mb-6 text-sm">
+                        <div v-if="selectedStep.assignee_name" class="flex items-center gap-2">
+                            <span class="text-gray-500">Assignee:</span>
+                            <span class="font-medium">{{ selectedStep.assignee_name }}</span>
+                        </div>
+                        <div v-if="selectedStep.due_date" class="flex items-center gap-2">
+                            <span class="text-gray-500">Due:</span>
+                            <span class="font-medium">{{ formatDateLong(selectedStep.due_date) }}</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-gray-500">Progress:</span>
+                            <span class="font-medium">{{ selectedStep.progress }}%</span>
+                        </div>
+                    </div>
+
+                    <h4 class="font-medium text-gray-900 mb-3">Action Items</h4>
+                    <div class="space-y-2">
+                        <div v-for="item in selectedStep.action_items" :key="item.id" @click="openActionModal(item, selectedStep, selectedStepParentPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center justify-between">
+                            <div class="flex items-center gap-3">
+                                <button @click.stop="toggleActionItem(item)" :class="['w-5 h-5 rounded border-2 flex items-center justify-center text-xs', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
+                                    <span v-if="item.status === 'done'">✓</span>
+                                </button>
+                                <span :class="item.status === 'done' ? 'text-gray-400 line-through' : ''">{{ item.title }}</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm">
+                                <span v-if="item.assignee_name" class="text-gray-500">{{ item.assignee_name }}</span>
+                                <span v-if="item.due_date" class="text-gray-500">{{ formatDate(item.due_date) }}</span>
+                                <span :class="actionStatusClass(item.status)">{{ formatStatus(item.status) }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Item Detail Modal -->
+        <div v-if="selectedAction" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full">
+                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <span class="text-orange-500 text-2xl">⚡</span>
+                        <div>
+                            <h2 class="text-lg font-bold text-gray-900">{{ selectedAction.title }}</h2>
+                            <p class="text-sm text-gray-500">{{ selectedActionParentStep?.title }} • {{ selectedActionParentPhase?.title }}</p>
+                        </div>
+                    </div>
+                    <button @click="selectedAction = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                </div>
+                <div class="p-6">
+                    <div class="flex items-center gap-3 mb-4">
+                        <span :class="actionStatusBadgeClass(selectedAction.status)">{{ formatStatus(selectedAction.status) }}</span>
+                        <button @click="toggleActionItem(selectedAction)" class="text-sm text-orange-500 hover:text-orange-600">
+                            {{ selectedAction.status === 'done' ? 'Mark as To Do' : 'Mark as Done' }}
+                        </button>
+                    </div>
+
+                    <div v-if="selectedAction.description" class="mb-4">
+                        <h4 class="font-medium text-gray-900 mb-1">Description</h4>
+                        <p class="text-gray-600">{{ selectedAction.description }}</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div v-if="selectedAction.assignee_name">
+                            <span class="text-gray-500">Assignee</span>
+                            <div class="flex items-center gap-2 mt-1">
+                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xs">{{ selectedAction.assignee_name.charAt(0) }}</div>
+                                <span class="font-medium">{{ selectedAction.assignee_name }}</span>
+                            </div>
+                        </div>
+                        <div v-if="selectedAction.due_date">
+                            <span class="text-gray-500">Due Date</span>
+                            <div class="font-medium mt-1">{{ formatDateLong(selectedAction.due_date) }}</div>
+                        </div>
+                        <div v-if="selectedAction.completed_at">
+                            <span class="text-gray-500">Completed</span>
+                            <div class="font-medium mt-1">{{ formatDateLong(selectedAction.completed_at) }}</div>
+                        </div>
+                    </div>
+
+                    <div v-if="selectedAction.notes" class="mt-4">
+                        <h4 class="font-medium text-gray-900 mb-1">Notes</h4>
+                        <p class="text-gray-600">{{ selectedAction.notes }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 {% endverbatim %}
 
@@ -331,8 +572,18 @@
                     currentFilter: 'all',
                     searchQuery: '',
                     searchTimeout: null,
+                    summaryExpanded: true,
+                    showImplementationModal: false,
+                    expandedPhases: {},
+                    selectedPhase: null,
+                    selectedStep: null,
+                    selectedStepParentPhase: null,
+                    selectedAction: null,
+                    selectedActionParentStep: null,
+                    selectedActionParentPhase: null,
                     filters: [
                         { label: 'All', value: 'all' },
+                        { label: 'Active', value: 'active' },
                         { label: 'On Hold', value: 'on_hold' },
                         { label: 'Completed', value: 'completed' },
                     ],
@@ -346,7 +597,6 @@
                         active: this.paths.filter(p => p.status === 'active').length,
                         on_hold: this.paths.filter(p => p.status === 'on_hold').length,
                         completed: this.paths.filter(p => p.status === 'completed').length,
-                        draft: this.paths.filter(p => p.status === 'draft').length,
                     };
                 },
                 filteredPaths() {
@@ -358,33 +608,24 @@
                 async fetchPaths() {
                     try {
                         let url = `${this.API_BASE}/paths/`;
-                        if (this.searchQuery) {
-                            url += `?search=${encodeURIComponent(this.searchQuery)}`;
-                        }
+                        if (this.searchQuery) url += `?search=${encodeURIComponent(this.searchQuery)}`;
                         const res = await fetch(url);
                         const data = await res.json();
                         this.paths = data.results || data;
-                    } catch (err) {
-                        console.error('Error fetching paths:', err);
-                    }
+                    } catch (err) { console.error('Error:', err); }
                 },
                 debouncedSearch() {
                     clearTimeout(this.searchTimeout);
-                    this.searchTimeout = setTimeout(() => {
-                        this.fetchPaths();
-                    }, 300);
+                    this.searchTimeout = setTimeout(() => this.fetchPaths(), 300);
                 },
-                clearSearch() {
-                    this.searchQuery = '';
-                    this.fetchPaths();
-                },
+                clearSearch() { this.searchQuery = ''; this.fetchPaths(); },
                 async selectPath(id) {
                     try {
                         const res = await fetch(`${this.API_BASE}/paths/${id}/`);
                         this.selectedPath = await res.json();
-                    } catch (err) {
-                        console.error('Error fetching path details:', err);
-                    }
+                        this.summaryExpanded = true;
+                        this.expandedPhases = {};
+                    } catch (err) { console.error('Error:', err); }
                 },
                 async updatePathStatus(status) {
                     try {
@@ -395,9 +636,7 @@
                         });
                         this.selectedPath = await res.json();
                         this.fetchPaths();
-                    } catch (err) {
-                        console.error('Error updating status:', err);
-                    }
+                    } catch (err) { console.error('Error:', err); }
                 },
                 async toggleActionItem(item) {
                     try {
@@ -407,88 +646,68 @@
                         });
                         this.selectPath(this.selectedPath.id);
                         this.fetchPaths();
-                    } catch (err) {
-                        console.error('Error updating action item:', err);
+                    } catch (err) { console.error('Error:', err); }
+                },
+                togglePhaseExpand(phaseId) {
+                    this.expandedPhases[phaseId] = !this.expandedPhases[phaseId];
+                },
+                openPhaseModal(phase) {
+                    this.selectedPhase = phase;
+                },
+                openStepModal(step, phase) {
+                    this.selectedStep = step;
+                    this.selectedStepParentPhase = phase;
+                },
+                openActionModal(action, step, phase) {
+                    this.selectedAction = action;
+                    this.selectedActionParentStep = step;
+                    this.selectedActionParentPhase = phase;
+                },
+                countPhaseActions(phase) {
+                    let count = 0;
+                    if (phase.steps) {
+                        phase.steps.forEach(s => { count += s.action_items?.length || 0; });
                     }
+                    return count;
                 },
                 formatStatus(status) {
-                    const map = {
-                        draft: 'Draft',
-                        active: 'Active',
-                        on_hold: 'On Hold',
-                        completed: 'Completed',
-                        archived: 'Archived',
-                        todo: 'To Do',
-                        in_progress: 'In Progress',
-                        blocked: 'Blocked',
-                        done: 'Done'
-                    };
+                    const map = { draft: 'Draft', active: 'Active', on_hold: 'On Hold', completed: 'Completed', archived: 'Archived', todo: 'To Do', in_progress: 'In Progress', blocked: 'Blocked', done: 'Done' };
                     return map[status] || status;
                 },
                 formatDate(dateStr) {
                     if (!dateStr) return '';
-                    const date = new Date(dateStr);
-                    return date.toLocaleDateString();
+                    return new Date(dateStr).toLocaleDateString();
+                },
+                formatDateLong(dateStr) {
+                    if (!dateStr) return '';
+                    return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 },
                 statusBadgeClass(status) {
-                    const classes = {
-                        draft: 'bg-gray-100 text-gray-600',
-                        active: 'bg-green-100 text-green-700',
-                        on_hold: 'bg-yellow-100 text-yellow-700',
-                        completed: 'bg-blue-100 text-blue-700',
-                        archived: 'bg-gray-100 text-gray-500'
-                    };
-                    return `px-3 py-1 rounded-full text-xs font-medium ${classes[status] || ''}`;
+                    const c = { draft: 'bg-gray-100 text-gray-600', active: 'bg-green-100 text-green-700', on_hold: 'bg-yellow-100 text-yellow-700', completed: 'bg-blue-100 text-blue-700', archived: 'bg-gray-100 text-gray-500' };
+                    return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
                 },
                 priorityBadgeClass(priority) {
-                    const classes = {
-                        low: 'bg-gray-100 text-gray-600',
-                        medium: 'bg-blue-100 text-blue-600',
-                        high: 'bg-orange-100 text-orange-600',
-                        critical: 'bg-red-100 text-red-600'
-                    };
-                    return `px-3 py-1 rounded-full text-xs font-medium ${classes[priority] || ''}`;
-                },
-                taskStatusClass(status) {
-                    const classes = {
-                        todo: 'bg-gray-100 text-gray-600',
-                        in_progress: 'bg-blue-100 text-blue-600',
-                        blocked: 'bg-red-100 text-red-600',
-                        done: 'bg-green-100 text-green-600'
-                    };
-                    return `px-2 py-1 rounded text-xs font-medium ${classes[status] || ''}`;
+                    const c = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100 text-blue-600', high: 'bg-orange-100 text-orange-600', critical: 'bg-red-100 text-red-600' };
+                    return `px-3 py-1 rounded-full text-xs font-medium ${c[priority] || ''}`;
                 },
                 phaseStatusClass(status) {
-                    const classes = {
-                        todo: 'bg-gray-200 text-gray-700',
-                        in_progress: 'bg-blue-200 text-blue-800',
-                        blocked: 'bg-red-200 text-red-800',
-                        done: 'bg-green-200 text-green-800'
-                    };
-                    return `px-2 py-1 rounded text-xs font-semibold ${classes[status] || ''}`;
+                    const c = { todo: 'bg-gray-200 text-gray-700', in_progress: 'bg-blue-200 text-blue-800', blocked: 'bg-red-200 text-red-800', done: 'bg-green-200 text-green-800' };
+                    return `px-2 py-1 rounded text-xs font-semibold ${c[status] || ''}`;
                 },
                 stepStatusClass(status) {
-                    const classes = {
-                        todo: 'bg-gray-100 text-gray-600',
-                        in_progress: 'bg-blue-100 text-blue-700',
-                        blocked: 'bg-red-100 text-red-700',
-                        done: 'bg-green-100 text-green-700'
-                    };
-                    return `px-2 py-0.5 rounded text-xs ${classes[status] || ''}`;
+                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-700', blocked: 'bg-red-100 text-red-700', done: 'bg-green-100 text-green-700' };
+                    return `px-2 py-0.5 rounded text-xs ${c[status] || ''}`;
                 },
                 actionStatusClass(status) {
-                    const classes = {
-                        todo: 'text-gray-500',
-                        in_progress: 'text-blue-600',
-                        blocked: 'text-red-600',
-                        done: 'text-green-600'
-                    };
-                    return classes[status] || '';
+                    const c = { todo: 'text-gray-500', in_progress: 'text-blue-600', blocked: 'text-red-600', done: 'text-green-600' };
+                    return c[status] || '';
+                },
+                actionStatusBadgeClass(status) {
+                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-600', blocked: 'bg-red-100 text-red-600', done: 'bg-green-100 text-green-600' };
+                    return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
                 }
             },
-            mounted() {
-                this.fetchPaths();
-            }
+            mounted() { this.fetchPaths(); }
         }).mount('#app');
     </script>
 </body>

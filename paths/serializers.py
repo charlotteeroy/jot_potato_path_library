@@ -13,7 +13,7 @@ class ActionItemSerializer(serializers.ModelSerializer):
         model = ActionItem
         fields = [
             'id', 'step', 'title', 'description', 'status',
-            'assignee_id', 'order', 'due_date', 'completed_at',
+            'assignee_id', 'assignee_name', 'order', 'due_date', 'completed_at',
             'notes', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -28,6 +28,7 @@ class StepSerializer(serializers.ModelSerializer):
         model = Step
         fields = [
             'id', 'phase', 'title', 'description', 'status',
+            'assignee_id', 'assignee_name', 'due_date',
             'order', 'action_items', 'progress', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -45,6 +46,7 @@ class PhaseSerializer(serializers.ModelSerializer):
         model = Phase
         fields = [
             'id', 'path', 'title', 'description', 'status',
+            'assignee_id', 'assignee_name', 'due_date',
             'order', 'steps', 'progress', 'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
@@ -60,7 +62,7 @@ class PhaseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Phase
-        fields = ['id', 'title', 'status', 'order', 'step_count', 'progress']
+        fields = ['id', 'title', 'status', 'order', 'step_count', 'progress', 'assignee_name', 'due_date']
 
     def get_step_count(self, obj):
         return obj.steps.count()
@@ -158,7 +160,9 @@ class PathListSerializer(serializers.ModelSerializer):
             'id', 'title', 'status', 'priority', 'progress_percentage',
             'issue_title', 'root_cause_title', 'initiative_title',
             'phase_count', 'action_item_count', 'completed_action_count',
-            'started_at', 'target_completion_date', 'created_at', 'updated_at'
+            'started_at', 'target_completion_date', 'completed_at', 'paused_at',
+            'team_size', 'duration_days', 'project_summary',
+            'created_at', 'updated_at'
         ]
 
     def get_phase_count(self, obj):
@@ -191,9 +195,14 @@ class PathDetailSerializer(serializers.ModelSerializer):
         model = Path
         fields = [
             'id', 'title', 'goal_statement', 'status', 'priority',
-            'started_at', 'target_completion_date', 'completed_at',
+            'started_at', 'target_completion_date', 'completed_at', 'paused_at',
+            'team_size', 'duration_days', 'project_summary',
             'progress_percentage', 'baseline_metric', 'current_metric',
             'organization_id', 'owner_id', 'notes',
+            # On Hold fields
+            'on_hold_reason', 'what_was_started', 'on_hold_issues_faced',
+            # Completed fields
+            'what_was_solved', 'completed_issues_faced', 'key_learnings',
             'issue', 'root_cause', 'initiative', 'phases', 'comments',
             'created_at', 'updated_at'
         ]
@@ -209,7 +218,7 @@ class PathCreateSerializer(serializers.ModelSerializer):
             'id', 'title', 'goal_statement', 'status', 'priority',
             'issue', 'root_cause', 'initiative',
             'target_completion_date', 'organization_id', 'owner_id',
-            'notes', 'baseline_metric'
+            'notes', 'baseline_metric', 'team_size', 'project_summary'
         ]
         read_only_fields = ['id']
 
@@ -222,7 +231,12 @@ class PathUpdateSerializer(serializers.ModelSerializer):
         fields = [
             'title', 'goal_statement', 'status', 'priority',
             'target_completion_date', 'notes',
-            'baseline_metric', 'current_metric', 'started_at', 'completed_at'
+            'baseline_metric', 'current_metric', 'started_at', 'completed_at', 'paused_at',
+            'team_size', 'duration_days', 'project_summary',
+            # On Hold fields
+            'on_hold_reason', 'what_was_started', 'on_hold_issues_faced',
+            # Completed fields
+            'what_was_solved', 'completed_issues_faced', 'key_learnings'
         ]
 
 

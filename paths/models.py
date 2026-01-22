@@ -173,6 +173,14 @@ class Path(BaseModel):
     started_at = models.DateTimeField(null=True, blank=True)
     target_completion_date = models.DateField(null=True, blank=True)
     completed_at = models.DateTimeField(null=True, blank=True)
+    paused_at = models.DateTimeField(null=True, blank=True)
+
+    # Team information
+    team_size = models.PositiveSmallIntegerField(default=1, help_text="Number of team members")
+    duration_days = models.PositiveIntegerField(null=True, blank=True, help_text="Duration in days")
+
+    # Project summary
+    project_summary = models.TextField(blank=True, help_text="High-level summary of the path")
 
     # Progress tracking
     progress_percentage = models.PositiveSmallIntegerField(default=0)
@@ -186,6 +194,16 @@ class Path(BaseModel):
     owner_id = models.UUIDField(null=True, blank=True)
 
     notes = models.TextField(blank=True)
+
+    # On Hold fields
+    on_hold_reason = models.TextField(blank=True, help_text="Why this path is on hold")
+    what_was_started = models.TextField(blank=True, help_text="What you started to solve")
+    on_hold_issues_faced = models.TextField(blank=True, help_text="Issues faced while working on this path")
+
+    # Completed fields
+    what_was_solved = models.JSONField(null=True, blank=True, help_text="List of things that were solved")
+    completed_issues_faced = models.JSONField(null=True, blank=True, help_text="List of issues faced during completion")
+    key_learnings = models.JSONField(null=True, blank=True, help_text="Key learnings and insights from this path")
 
     class Meta:
         ordering = ['-updated_at']
@@ -239,6 +257,11 @@ class Phase(BaseModel):
     )
     order = models.PositiveIntegerField(default=0)
 
+    # Assignee and timeline
+    assignee_id = models.UUIDField(null=True, blank=True)
+    assignee_name = models.CharField(max_length=100, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+
     class Meta:
         ordering = ['order', 'created_at']
 
@@ -279,6 +302,11 @@ class Step(BaseModel):
     )
     order = models.PositiveIntegerField(default=0)
 
+    # Assignee and timeline
+    assignee_id = models.UUIDField(null=True, blank=True)
+    assignee_name = models.CharField(max_length=100, blank=True)
+    due_date = models.DateField(null=True, blank=True)
+
     class Meta:
         ordering = ['order', 'created_at']
 
@@ -315,6 +343,7 @@ class ActionItem(BaseModel):
         default=ItemStatus.TODO
     )
     assignee_id = models.UUIDField(null=True, blank=True)
+    assignee_name = models.CharField(max_length=100, blank=True)
 
     order = models.PositiveIntegerField(default=0)
     due_date = models.DateField(null=True, blank=True)

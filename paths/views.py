@@ -111,6 +111,10 @@ class PathViewSet(viewsets.ModelViewSet):
         if new_status == PathStatus.ACTIVE and old_status != PathStatus.ACTIVE:
             if not path.started_at:
                 path.started_at = timezone.now()
+            # Clear paused_at when reactivating
+            path.paused_at = None
+        elif new_status == PathStatus.ON_HOLD:
+            path.paused_at = timezone.now()
         elif new_status == PathStatus.COMPLETED:
             path.completed_at = timezone.now()
 
