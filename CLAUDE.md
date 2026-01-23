@@ -78,6 +78,8 @@ Issue → Root Cause → Initiative → Path
 - **Backend**: Django 6.0 + Django REST Framework
 - **Frontend**: Vue.js 3 (CDN) + Tailwind CSS (CDN)
 - **Database**: SQLite (development), PostgreSQL (production)
+- **Font**: Poppins (Google Fonts)
+- **Brand Color**: `#1F2937` (dark blue-gray)
 
 ## Development Setup
 
@@ -125,17 +127,46 @@ Base URL: `/api/`
 - `GET /api/paths/` - List all paths (supports `?status=` filter)
 - `GET /api/paths/{id}/` - Path detail with phases, steps, action items
 - `PATCH /api/paths/{id}/` - Update path
-- `PATCH /api/action-items/{id}/status/` - Update action item status
+- `POST /api/paths/{id}/update_status/` - Update path status
+- `POST /api/paths/{id}/ai_query/` - AI-powered path intelligence queries
+- `POST /api/action-items/{id}/toggle_status/` - Toggle action item status
 - `GET /api/issues/` - List issues
 - `GET /api/root-causes/` - List root causes
 - `GET /api/initiatives/` - List initiatives
 
 ## Frontend Features
 
-- **Path Library View**: Grid of path cards with status filters (All, Active, On Hold, Completed)
-- **Path Detail Modal**: Shows issue chain, metrics, and implementation plan overview
-- **Implementation Plan Modal**: Expandable table with phases → steps → action items
-- **Detail Modals**: Drill-down views for Phase, Step, and Action Item
+### Navigation
+- **Sidebar**: Fixed left sidebar with navigation icons (Paths, Analytics, Refresh, Messages, Notifications, Settings) - hidden on mobile
+- **Top Navigation**: Breadcrumb navigation with mobile hamburger menu
+- **Mobile Menu**: Horizontal navigation bar that appears on mobile devices
+
+### Path Library
+- **Path Cards**: Clean card design with title, description, status badge, and metadata
+- **Status Filters**: Filter by All, Active, On Hold, Completed
+- **Search**: Real-time search with debouncing
+
+### Path Detail View
+- **Header**: Status/priority badges, progress percentage, metadata (dates, duration, team size)
+- **Project Summary**: Expandable section with on-hold reasons or completion learnings
+- **Path Journey**: Visual cards showing Issue → Root Cause → Initiative chain
+- **Implementation Plan**: Compact phase overview with progress bars
+
+### Modals
+- **Implementation Plan Modal**: Expandable table with phases → steps → action items (card view on mobile)
+- **Phase Detail Modal**: Progress stats, description, and steps list
+- **Step Detail Modal**: Action items with checkbox toggles
+- **Action Item Modal**: Full details with status toggle
+
+### AI Assistant
+- **Floating Bubble**: Violet bubble in bottom-right corner (appears when viewing a path)
+- **Hover-to-Open**: Chat popup opens on hover
+- **Quick Actions**: Pre-built queries for Success Factors, Challenges, Improvements
+- **Intelligent Responses**: Contextual answers about status, blockers, due dates, team, phases, accomplishments
+
+### Responsive Design
+- Fully responsive layout for mobile, tablet, and desktop
+- Mobile-first approach with Tailwind breakpoints (sm, md, lg)
 
 ## Path Statuses
 
@@ -146,10 +177,26 @@ Base URL: `/api/`
 
 ## Important Notes
 
-1. **Template Syntax**: Use `[[ ]]` for Vue.js interpolation (Django uses `{{ }}`)
+1. **Template Syntax**: Vue.js uses `{{ }}` inside `{% verbatim %}` tags to avoid Django conflicts
 2. **Progress Calculation**: Automatically calculated from completed action items
 3. **No Draft Paths**: All paths in the library are active (implementation started)
 4. **Assignees**: Stored as `assignee_id` (UUID) and `assignee_name` (display string)
+5. **AI Assistant**: Uses keyword matching to generate contextual responses about path data
+6. **Responsive Breakpoints**: `md:` prefix for tablet/desktop styles (768px+)
+
+## AI Query Keywords
+
+The AI assistant responds to queries containing these keywords:
+
+| Keywords | Response Type |
+|----------|---------------|
+| status, progress, overview, how | Path status overview with completion stats |
+| block, issue, problem, stuck | List of blocked tasks |
+| due, deadline, upcoming, soon | Upcoming due dates with urgency indicators |
+| accomplish, done, complete, finish, solved | Completed work and key learnings |
+| team, who, assignee, member, person | Team members list |
+| phase, stage, step | Implementation phases overview |
+| *(default)* | General path information with suggestions |
 
 ## Test Data
 
