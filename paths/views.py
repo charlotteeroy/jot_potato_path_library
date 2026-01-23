@@ -151,6 +151,214 @@ class PathViewSet(viewsets.ModelViewSet):
         }
         return Response(stats)
 
+    @action(detail=True, methods=['post'])
+    def ai_query(self, request, pk=None):
+        """
+        AI-powered query endpoint for path intelligence.
+        Analyzes the path data and provides relevant insights.
+        """
+        path = self.get_object()
+        query = request.data.get('query', '').lower()
+
+        # Gather path data for context
+        total_actions = 0
+        completed_actions = 0
+        blocked_actions = []
+        in_progress_actions = []
+        upcoming_due = []
+        all_assignees = set()
+
+        for phase in path.phases.all():
+            if phase.assignee_name:
+                all_assignees.add(phase.assignee_name)
+            for step in phase.steps.all():
+                if step.assignee_name:
+                    all_assignees.add(step.assignee_name)
+                for item in step.action_items.all():
+                    total_actions += 1
+                    if item.assignee_name:
+                        all_assignees.add(item.assignee_name)
+                    if item.status == ItemStatus.DONE:
+                        completed_actions += 1
+                    elif item.status == ItemStatus.BLOCKED:
+                        blocked_actions.append({
+                            'title': item.title,
+                            'step': step.title,
+                            'phase': phase.title,
+                            'assignee': item.assignee_name
+                        })
+                    elif item.status == ItemStatus.IN_PROGRESS:
+                        in_progress_actions.append({
+                            'title': item.title,
+                            'step': step.title,
+                            'phase': phase.title,
+                            'assignee': item.assignee_name
+                        })
+                    if item.due_date and item.status != ItemStatus.DONE:
+                        upcoming_due.append({
+                            'title': item.title,
+                            'due_date': item.due_date,
+                            'assignee': item.assignee_name
+                        })
+
+        # Sort upcoming by due date
+        upcoming_due.sort(key=lambda x: x['due_date'])
+
+        # Generate contextual response based on query
+        response = self._generate_ai_response(
+            query, path, total_actions, completed_actions,
+            blocked_actions, in_progress_actions, upcoming_due, all_assignees
+        )
+
+        return Response({'response': response})
+
+    def _generate_ai_response(self, query, path, total_actions, completed_actions,
+                              blocked_actions, in_progress_actions, upcoming_due, all_assignees):
+        """Generate an intelligent response based on the query and path data."""
+
+        # Status and progress queries
+        if any(word in query for word in ['status', 'progress', 'overview', 'how']):
+            status_map = {'active': 'Active', 'on_hold': 'On Hold', 'completed': 'Completed'}
+            status_text = status_map.get(path.status, path.status)
+            progress = path.progress_percentage
+
+            response = f"📊 **Path Status Overview**\n\n"
+            response += f"**{path.title}** is currently **{status_text}** with **{progress}%** completion.\n\n"
+            response += f"• Total actions: {total_actions}\n"
+            response += f"• Completed: {completed_actions}\n"
+            response += f"• Remaining: {total_actions - completed_actions}\n"
+
+            if blocked_actions:
+                response += f"• ⚠️ Blocked: {len(blocked_actions)}\n"
+            if in_progress_actions:
+                response += f"• 🔄 In Progress: {len(in_progress_actions)}\n"
+
+            if path.target_completion_date:
+                response += f"\n📅 Target completion: {path.target_completion_date.strftime('%B %d, %Y')}"
+
+            return response
+
+        # Blockers and issues queries
+        if any(word in query for word in ['block', 'issue', 'problem', 'stuck']):
+            if not blocked_actions:
+                return "✅ Great news! There are currently no blocked tasks in this path. All items are either completed, in progress, or pending."
+
+            response = f"⚠️ **Blocked Items ({len(blocked_actions)})**\n\n"
+            for i, item in enumerate(blocked_actions[:5], 1):
+                response += f"{i}. **{item['title']}**\n"
+                response += f"   └─ {item['phase']} → {item['step']}\n"
+                if item['assignee']:
+                    response += f"   └─ Assigned to: {item['assignee']}\n"
+                response += "\n"
+
+            if len(blocked_actions) > 5:
+                response += f"... and {len(blocked_actions) - 5} more blocked items."
+
+            return response
+
+        # Due dates and deadlines
+        if any(word in query for word in ['due', 'deadline', 'upcoming', 'soon']):
+            if not upcoming_due:
+                return "📅 There are no pending tasks with due dates in this path."
+
+            from datetime import date
+            today = date.today()
+            response = "📅 **Upcoming Due Dates**\n\n"
+
+            for i, item in enumerate(upcoming_due[:7], 1):
+                days_until = (item['due_date'] - today).days
+                urgency = "🔴" if days_until < 0 else "🟠" if days_until <= 3 else "🟡" if days_until <= 7 else "🟢"
+
+                if days_until < 0:
+                    time_text = f"**OVERDUE** by {abs(days_until)} days"
+                elif days_until == 0:
+                    time_text = "**DUE TODAY**"
+                elif days_until == 1:
+                    time_text = "Due tomorrow"
+                else:
+                    time_text = f"Due in {days_until} days"
+
+                response += f"{urgency} **{item['title']}**\n"
+                response += f"   └─ {time_text} ({item['due_date'].strftime('%b %d')})\n"
+                if item['assignee']:
+                    response += f"   └─ Assignee: {item['assignee']}\n"
+                response += "\n"
+
+            return response
+
+        # Accomplishments and completed work
+        if any(word in query for word in ['accomplish', 'done', 'complete', 'finish', 'solved']):
+            if completed_actions == 0:
+                return "📋 No tasks have been completed yet. The team is just getting started on this path!"
+
+            response = f"✅ **Accomplishments**\n\n"
+            response += f"**{completed_actions}** out of **{total_actions}** action items have been completed ({path.progress_percentage}%).\n\n"
+
+            if path.what_was_solved:
+                response += "**Key achievements:**\n"
+                for item in path.what_was_solved:
+                    response += f"• {item}\n"
+
+            if path.key_learnings:
+                response += "\n**Key learnings:**\n"
+                for item in path.key_learnings:
+                    response += f"• {item}\n"
+
+            return response
+
+        # Team and assignees
+        if any(word in query for word in ['team', 'who', 'assignee', 'member', 'person']):
+            if not all_assignees:
+                return "👥 No team members have been assigned to tasks in this path yet."
+
+            response = f"👥 **Team Members** ({len(all_assignees)})\n\n"
+            for name in sorted(all_assignees):
+                response += f"• {name}\n"
+
+            response += f"\n📊 Team size: {path.team_size or 1} member(s)"
+            return response
+
+        # Phase information
+        if any(word in query for word in ['phase', 'stage', 'step']):
+            phases = list(path.phases.all().order_by('order'))
+            if not phases:
+                return "📋 No phases have been defined for this path yet."
+
+            response = "📋 **Implementation Phases**\n\n"
+            for phase in phases:
+                progress = phase.calculate_progress()
+                status_emoji = "✅" if phase.status == 'done' else "🔄" if phase.status == 'in_progress' else "⏳"
+                response += f"{status_emoji} **{phase.title}** - {progress}%\n"
+                response += f"   └─ {phase.steps.count()} steps\n"
+                if phase.assignee_name:
+                    response += f"   └─ Lead: {phase.assignee_name}\n"
+                response += "\n"
+
+            return response
+
+        # Default response with general info
+        response = f"🥔 **About this Path**\n\n"
+        response += f"**{path.title}**\n\n"
+
+        if path.goal_statement:
+            response += f"**Goal:** {path.goal_statement}\n\n"
+        if path.project_summary:
+            response += f"**Summary:** {path.project_summary}\n\n"
+
+        response += f"**Current Status:** {path.status.replace('_', ' ').title()}\n"
+        response += f"**Progress:** {path.progress_percentage}% ({completed_actions}/{total_actions} tasks)\n"
+
+        if path.issue:
+            response += f"\n**Original Issue:** {path.issue.title}"
+        if path.root_cause:
+            response += f"\n**Root Cause:** {path.root_cause.title}"
+        if path.initiative:
+            response += f"\n**Initiative:** {path.initiative.title}"
+
+        response += "\n\n💡 *Try asking about: status, blockers, due dates, team, phases, or accomplishments*"
+
+        return response
+
 
 class PhaseViewSet(viewsets.ModelViewSet):
     """API endpoint for Phases."""

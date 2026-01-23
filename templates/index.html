@@ -16,6 +16,17 @@
                     fontFamily: {
                         sans: ['Poppins', 'sans-serif'],
                     },
+                    colors: {
+                        'brand': {
+                            DEFAULT: '#1F2937',
+                            50: '#F3F4F6',
+                            100: '#E5E7EB',
+                            200: '#D1D5DB',
+                            500: '#1F2937',
+                            600: '#1a2332',
+                            700: '#151c29',
+                        }
+                    }
                 },
             },
         }
@@ -35,30 +46,136 @@
 </head>
 <body class="bg-gray-50 min-h-screen font-sans">
 {% verbatim %}
-    <div id="app" v-cloak>
-        <!-- Header -->
-        <header class="bg-white shadow-sm border-b border-gray-200">
-            <div class="max-w-7xl mx-auto px-4 py-4 sm:px-6 lg:px-8">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <div class="text-3xl">🥔</div>
-                        <div>
-                            <h1 class="text-2xl font-bold text-gray-900">Path Library</h1>
-                            <p class="text-sm text-gray-500">Jot Potato - Customer Feedback Intelligence</p>
-                        </div>
-                    </div>
-                    <div class="flex gap-2">
-                        <button @click="fetchPaths" class="px-4 py-2 text-sm bg-gray-100 hover:bg-gray-200 rounded-lg transition">
-                            ↻ Refresh
+    <div id="app" v-cloak class="flex min-h-screen">
+        <!-- Sidebar - Hidden on mobile -->
+        <aside class="hidden md:flex fixed left-0 top-0 h-full w-16 bg-gray-800 flex-col items-center py-4 z-50">
+            <!-- App Label -->
+            <div class="text-xs text-gray-400 mb-4 tracking-wide">Path library</div>
+
+            <!-- Main Navigation -->
+            <nav class="flex flex-col items-center gap-2 flex-1">
+                <!-- Potato (Home/Paths) - Active -->
+                <button class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition" title="Paths Library">
+                    <svg class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                        <ellipse cx="12" cy="13" rx="8" ry="9" fill="currentColor" opacity="0.3"/>
+                        <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
+                        <circle cx="9" cy="10" r="1" fill="white"/>
+                        <circle cx="14" cy="9" r="0.8" fill="white"/>
+                        <circle cx="11" cy="14" r="0.6" fill="white"/>
+                    </svg>
+                </button>
+
+                <!-- Analytics -->
+                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Analytics">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                    </svg>
+                </button>
+
+                <!-- Sync/Refresh -->
+                <button @click="fetchPaths" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Refresh">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                </button>
+
+                <!-- Messages -->
+                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Messages">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
+                    </svg>
+                </button>
+            </nav>
+
+            <!-- Bottom Navigation -->
+            <div class="flex flex-col items-center gap-2 mt-auto">
+                <!-- Notifications -->
+                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Notifications">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
+                </button>
+
+                <!-- Settings -->
+                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Settings">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 md:ml-16">
+            <!-- Top Navigation Bar -->
+            <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+                <div class="px-4 md:px-6 py-3 flex items-center justify-between">
+                    <div class="flex items-center gap-2 md:gap-3">
+                        <!-- Mobile Menu Button -->
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                            </svg>
                         </button>
+                        <!-- Potato Icon -->
+                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                                <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
+                                <circle cx="9" cy="10" r="1" fill="white"/>
+                                <circle cx="14" cy="9" r="0.8" fill="white"/>
+                                <circle cx="11" cy="14" r="0.6" fill="white"/>
+                            </svg>
+                        </div>
+                        <!-- Breadcrumb -->
+                        <nav class="flex items-center text-sm">
+                            <span class="hidden sm:inline text-gray-900 font-medium">Work Area</span>
+                            <span class="hidden sm:inline mx-2 text-gray-400">»</span>
+                            <button class="flex items-center gap-1 text-gray-900 font-medium hover:text-gray-600">
+                                Paths Library
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </button>
+                        </nav>
                     </div>
                 </div>
-            </div>
-        </header>
+            </header>
 
-        <main class="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+            <!-- Mobile Menu Dropdown -->
+            <div v-if="mobileMenuOpen" class="md:hidden bg-gray-800 border-b border-gray-700">
+                <div class="flex items-center justify-around py-3">
+                    <button class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
+                        <svg class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                            <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </button>
+                    <button @click="fetchPaths" class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                    </button>
+                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <main class="px-4 md:px-6 py-4 md:py-6">
             <!-- Stats -->
-            <div class="grid grid-cols-4 gap-4 mb-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
                     <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
                     <div class="text-sm text-gray-500">Total Paths</div>
@@ -87,7 +204,7 @@
                             @input="debouncedSearch"
                             type="text"
                             placeholder="Search paths..."
-                            class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                            class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
                         />
                         <button v-if="searchQuery" @click="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
                     </div>
@@ -99,48 +216,33 @@
                         @click="currentFilter = filter.value"
                         :class="[
                             'px-4 py-2 rounded-lg text-sm font-medium transition',
-                            currentFilter === filter.value ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            currentFilter === filter.value ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                         ]"
                     >{{ filter.label }}</button>
                 </div>
             </div>
 
             <!-- Path List -->
-            <div class="space-y-4" v-if="!selectedPath">
+            <div class="space-y-3" v-if="!selectedPath">
                 <div
                     v-for="path in filteredPaths"
                     :key="path.id"
                     @click="selectPath(path.id)"
-                    class="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md hover:border-orange-200 cursor-pointer transition"
+                    class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-brand-200 cursor-pointer transition"
                 >
-                    <div class="flex items-start justify-between mb-4">
-                        <div class="flex-1">
-                            <div class="flex items-center gap-3 mb-2">
-                                <span :class="statusBadgeClass(path.status)">{{ formatStatus(path.status) }}</span>
-                                <span :class="priorityBadgeClass(path.priority)">{{ path.priority }}</span>
-                            </div>
-                            <h3 class="text-lg font-semibold text-gray-900">{{ path.title }}</h3>
-                            <p v-if="path.project_summary" class="text-sm text-gray-500 mt-1 line-clamp-2">{{ path.project_summary }}</p>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-2xl font-bold text-orange-500">{{ path.progress_percentage }}%</div>
-                            <div class="text-xs text-gray-500">progress</div>
-                        </div>
-                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ path.title }}</h3>
+                    <p v-if="path.project_summary" class="text-gray-500 mb-4 line-clamp-2">{{ path.project_summary }}</p>
+                    <p v-else class="text-gray-400 mb-4 line-clamp-2">No description</p>
 
-                    <div class="w-full bg-gray-100 rounded-full h-2 mb-3">
-                        <div class="bg-orange-500 h-2 rounded-full transition-all" :style="{ width: path.progress_percentage + '%' }"></div>
-                    </div>
-
-                    <div class="flex items-center justify-between text-sm text-gray-500">
-                        <div class="flex items-center gap-4">
-                            <span>{{ path.completed_action_count }} / {{ path.action_item_count }} actions</span>
-                            <span v-if="path.duration_days" class="flex items-center gap-1">⏱ {{ path.duration_days }} days</span>
-                            <span v-if="path.team_size" class="flex items-center gap-1">👥 {{ path.team_size }}</span>
-                        </div>
-                        <span v-if="path.status === 'completed' && path.completed_at">Completed {{ formatDate(path.completed_at) }}</span>
-                        <span v-else-if="path.status === 'on_hold' && path.paused_at">Paused {{ formatDate(path.paused_at) }}</span>
-                        <span v-else>Updated {{ formatDate(path.updated_at) }}</span>
+                    <div class="flex items-center text-sm text-gray-500">
+                        <span :class="statusBadgeClass(path.status)">{{ formatStatus(path.status) }}</span>
+                        <span class="mx-3 text-gray-300">|</span>
+                        <span v-if="path.duration_days">{{ path.duration_days }} days</span>
+                        <span v-else>—</span>
+                        <span class="mx-3 text-gray-300">|</span>
+                        <span v-if="path.status === 'completed' && path.completed_at">{{ formatRelativeTime(path.completed_at) }}</span>
+                        <span v-else-if="path.status === 'on_hold' && path.paused_at">{{ formatRelativeTime(path.paused_at) }}</span>
+                        <span v-else>{{ formatRelativeTime(path.updated_at) }}</span>
                     </div>
                 </div>
                 <div v-if="filteredPaths.length === 0" class="text-center py-12 text-gray-500">No paths found.</div>
@@ -151,28 +253,30 @@
                 <!-- Back Button -->
                 <div class="p-4 border-b border-gray-100 flex items-center justify-between">
                     <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">← Back to Path Library</button>
-                    <button v-if="selectedPath.status === 'on_hold'" @click="updatePathStatus('active')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">Reopen this path</button>
+                    <div class="flex items-center gap-3">
+                        <button v-if="selectedPath.status === 'on_hold'" @click="updatePathStatus('active')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">Reopen this path</button>
+                    </div>
                 </div>
 
                 <!-- Path Header -->
-                <div class="p-6 border-b border-gray-100">
-                    <div class="flex items-start justify-between mb-4">
-                        <div>
-                            <div class="flex items-center gap-3 mb-2">
+                <div class="p-4 md:p-6 border-b border-gray-100">
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                        <div class="flex-1 min-w-0">
+                            <div class="flex flex-wrap items-center gap-2 mb-2">
                                 <span :class="statusBadgeClass(selectedPath.status)">{{ formatStatus(selectedPath.status) }}</span>
                                 <span :class="priorityBadgeClass(selectedPath.priority)">{{ selectedPath.priority }}</span>
                             </div>
-                            <h2 class="text-2xl font-bold text-gray-900">{{ selectedPath.title }}</h2>
-                            <p class="text-gray-600 mt-2" v-if="selectedPath.goal_statement">{{ selectedPath.goal_statement }}</p>
+                            <h2 class="text-xl md:text-2xl font-bold text-gray-900">{{ selectedPath.title }}</h2>
+                            <p class="text-gray-600 mt-2 text-sm md:text-base" v-if="selectedPath.goal_statement">{{ selectedPath.goal_statement }}</p>
                         </div>
-                        <div class="text-right">
-                            <div class="text-4xl font-bold text-orange-500">{{ selectedPath.progress_percentage }}%</div>
+                        <div class="text-left sm:text-right flex-shrink-0">
+                            <div class="text-3xl md:text-4xl font-bold text-brand-500">{{ selectedPath.progress_percentage }}%</div>
                             <div class="text-sm text-gray-500">complete</div>
                         </div>
                     </div>
 
                     <!-- Metadata Row -->
-                    <div class="flex items-center gap-6 mt-4 pt-4 border-t border-gray-100 text-sm">
+                    <div class="flex flex-wrap items-center gap-4 md:gap-6 mt-4 pt-4 border-t border-gray-100 text-sm">
                         <div v-if="selectedPath.status === 'on_hold' && selectedPath.paused_at" class="flex items-center gap-2">
                             <span class="text-gray-400">📅</span>
                             <div><div class="text-xs text-gray-400">Paused On</div><div class="font-medium text-gray-900">{{ formatDateLong(selectedPath.paused_at) }}</div></div>
@@ -193,7 +297,7 @@
                 </div>
 
                 <!-- Project Summary Section -->
-                <div v-if="selectedPath.project_summary || selectedPath.status === 'on_hold' || selectedPath.status === 'completed'" class="p-6 border-b border-gray-100">
+                <div v-if="selectedPath.project_summary || selectedPath.status === 'on_hold' || selectedPath.status === 'completed'" class="p-4 md:p-6 border-b border-gray-100">
                     <div class="flex items-center justify-between cursor-pointer" @click="summaryExpanded = !summaryExpanded">
                         <h3 class="font-semibold text-gray-900">Project Summary</h3>
                         <span class="text-gray-400">{{ summaryExpanded ? '▼' : '▶' }}</span>
@@ -240,9 +344,9 @@
                 </div>
 
                 <!-- Path Journey (Issue -> Root Cause -> Initiative) -->
-                <div class="p-6 border-b border-gray-100 bg-gray-50">
+                <div class="p-4 md:p-6 border-b border-gray-100 bg-gray-50">
                     <h3 class="font-semibold text-gray-900 mb-4">Path Journey</h3>
-                    <div class="grid md:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
                         <div class="bg-white rounded-lg p-4 border border-red-100">
                             <div class="text-xs font-medium text-red-600 mb-1">📋 ISSUE</div>
                             <div class="font-semibold text-gray-900">{{ selectedPath.issue?.title }}</div>
@@ -262,31 +366,31 @@
                 </div>
 
                 <!-- Implementation Plan Summary (Clickable) -->
-                <div class="p-6">
+                <div class="p-4 md:p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="font-semibold text-gray-900">Implementation Plan</h3>
-                        <button @click="showImplementationModal = true" class="text-sm text-orange-500 hover:text-orange-600 font-medium">View Full Plan →</button>
+                        <button @click="showImplementationModal = true" class="text-sm text-brand-500 hover:text-brand-600 font-medium">View Full Plan →</button>
                     </div>
 
                     <!-- Compact Phase Overview -->
-                    <div class="space-y-3">
+                    <div class="space-y-2 md:space-y-3">
                         <div v-for="phase in selectedPath.phases" :key="phase.id"
                             @click="openPhaseModal(phase)"
-                            class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition">
-                            <div class="flex items-center gap-3">
+                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition gap-2 sm:gap-4">
+                            <div class="flex flex-wrap items-center gap-2 md:gap-3">
                                 <span :class="phaseStatusClass(phase.status)">{{ formatStatus(phase.status) }}</span>
-                                <span class="font-medium text-gray-900">{{ phase.title }}</span>
-                                <span class="text-sm text-gray-500">({{ phase.steps?.length || 0 }} steps)</span>
+                                <span class="font-medium text-gray-900 text-sm md:text-base">{{ phase.title }}</span>
+                                <span class="text-xs md:text-sm text-gray-500">({{ phase.steps?.length || 0 }} steps)</span>
                             </div>
-                            <div class="flex items-center gap-4">
-                                <span v-if="phase.assignee_name" class="text-sm text-gray-500">{{ phase.assignee_name }}</span>
+                            <div class="flex items-center gap-3 md:gap-4 text-xs md:text-sm">
+                                <span v-if="phase.assignee_name" class="text-gray-500 hidden sm:inline">{{ phase.assignee_name }}</span>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-20 bg-gray-200 rounded-full h-2">
-                                        <div class="bg-orange-500 h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
+                                    <div class="w-16 md:w-20 bg-gray-200 rounded-full h-1.5 md:h-2">
+                                        <div class="bg-brand-500 h-1.5 md:h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
                                     </div>
-                                    <span class="text-sm text-gray-600 w-10">{{ phase.progress }}%</span>
+                                    <span class="text-gray-600 w-8 md:w-10">{{ phase.progress }}%</span>
                                 </div>
-                                <span v-if="phase.due_date" class="text-sm text-gray-500">{{ formatDate(phase.due_date) }}</span>
+                                <span v-if="phase.due_date" class="text-gray-500 hidden md:inline">{{ formatDate(phase.due_date) }}</span>
                                 <span class="text-gray-400">›</span>
                             </div>
                         </div>
@@ -294,20 +398,126 @@
                     </div>
                 </div>
             </div>
+
+            <!-- AI Floating Bubble -->
+            <div v-if="selectedPath" class="fixed bottom-6 right-6 z-[55]" @mouseenter="showAIAgent = true" @mouseleave="handleAIMouseLeave">
+                <!-- Bubble Button -->
+                <button
+                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 bg-violet-600 hover:bg-violet-700"
+                >
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
+                        <path d="M5 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z"/>
+                        <path d="M18 14l.75 1.5 1.5.75-1.5.75L18 18.5l-.75-1.5-1.5-.75 1.5-.75L18 14z"/>
+                    </svg>
+                </button>
+
+                <!-- Chat Popup Box -->
+                <div v-if="showAIAgent" class="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
+                                    <path d="M5 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-semibold text-gray-900">AI Project Assistant</h3>
+                                <p class="text-sm text-gray-500 truncate">Ask questions about this project</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="h-56 sm:h-64 overflow-y-auto p-4 bg-gray-50" ref="chatContainer">
+                        <!-- Welcome/Initial Message -->
+                        <div v-if="aiMessages.length === 0" class="flex justify-start">
+                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] shadow-sm">
+                                <p class="text-sm text-gray-700">I'm analyzing the "{{ selectedPath.title }}" project. I can help you understand project insights, suggest improvements, or answer questions about this specific project.</p>
+                                <p class="text-xs text-gray-400 mt-2">{{ formatTime(new Date()) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div v-for="(msg, index) in aiMessages" :key="index" :class="['flex mb-3', msg.role === 'user' ? 'justify-end' : 'justify-start']">
+                            <div :class="['max-w-[90%] rounded-2xl px-4 py-3', msg.role === 'user' ? 'bg-violet-600 text-white rounded-br-md' : 'bg-white border border-gray-200 text-gray-700 rounded-bl-md shadow-sm']">
+                                <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
+                                <p :class="['text-xs mt-2', msg.role === 'user' ? 'text-violet-200' : 'text-gray-400']">{{ formatTime(msg.timestamp) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Typing Indicator -->
+                        <div v-if="aiLoading" class="flex justify-start">
+                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                                <div class="flex items-center gap-1">
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="px-3 py-2 border-t border-gray-100 bg-white overflow-x-auto">
+                        <div class="flex gap-2 min-w-max">
+                            <button @click="askAI('What are the success factors for this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                                Success Factors
+                            </button>
+                            <button @click="askAI('What are the main challenges and blockers?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                Challenges
+                            </button>
+                            <button @click="askAI('How can we improve this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                Improvements
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="px-3 py-3 border-t border-gray-100 bg-white">
+                        <div class="flex gap-2 items-center">
+                            <input
+                                v-model="aiInput"
+                                @keyup.enter="sendAIMessage"
+                                type="text"
+                                placeholder="How can we improve?"
+                                class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                            />
+                            <button @click="sendAIMessage" :disabled="!aiInput.trim() || aiLoading" class="w-10 h-10 flex-shrink-0 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
+        </div>
 
         <!-- Implementation Plan Modal -->
-        <div v-if="showImplementationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="text-xl font-bold text-gray-900">Implementation Plan</h2>
+        <div v-if="showImplementationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <h2 class="text-lg md:text-xl font-bold text-gray-900">Implementation Plan</h2>
                     <button @click="showImplementationModal = false" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
                 </div>
-                <div class="p-6 overflow-y-auto flex-1">
-                    <p class="text-gray-600 mb-6" v-if="selectedPath.project_summary">{{ selectedPath.project_summary }}</p>
+                <div class="p-4 md:p-6 overflow-y-auto flex-1">
+                    <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base" v-if="selectedPath.project_summary">{{ selectedPath.project_summary }}</p>
 
-                    <!-- Phases Table -->
-                    <table class="w-full">
+                    <!-- Phases Table - Hidden on mobile -->
+                    <table class="w-full hidden md:table">
                         <thead>
                             <tr class="text-left text-sm text-gray-500 border-b border-gray-200">
                                 <th class="pb-3 font-medium">Phase</th>
@@ -374,17 +584,17 @@
                                     </tr>
                                     <!-- Action Items -->
                                     <template v-for="step in phase.steps" :key="'actions-' + step.id">
-                                        <tr v-for="item in step.action_items" :key="item.id" @click.stop="openActionModal(item, step, phase)" class="border-b border-gray-50 bg-white hover:bg-orange-50 cursor-pointer">
+                                        <tr v-for="item in step.action_items" :key="item.id" @click.stop="openActionModal(item, step, phase)" class="border-b border-gray-50 bg-white hover:bg-gray-100 cursor-pointer">
                                             <td class="py-2 pl-16">
                                                 <div class="flex items-center gap-2">
-                                                    <span class="text-orange-400">⚡</span>
+                                                    <span class="text-brand-500">⚡</span>
                                                     <span class="text-sm" :class="item.status === 'done' ? 'text-gray-400 line-through' : ''">{{ item.title }}</span>
                                                 </div>
                                             </td>
                                             <td class="py-2 text-sm text-gray-400">{{ item.description || '' }}</td>
                                             <td class="py-2">
                                                 <div v-if="item.assignee_name" class="flex items-center gap-2">
-                                                    <div class="w-5 h-5 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xs">{{ item.assignee_name.charAt(0) }}</div>
+                                                    <div class="w-5 h-5 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs">{{ item.assignee_name.charAt(0) }}</div>
                                                     <span class="text-xs">{{ item.assignee_name }}</span>
                                                 </div>
                                             </td>
@@ -400,22 +610,49 @@
                             </template>
                         </tbody>
                     </table>
+
+                    <!-- Mobile Card View -->
+                    <div class="md:hidden space-y-3">
+                        <div v-for="phase in selectedPath.phases" :key="phase.id" class="bg-gray-50 rounded-lg p-3">
+                            <div @click="togglePhaseExpand(phase.id)" class="flex items-center justify-between cursor-pointer">
+                                <div class="flex items-center gap-2">
+                                    <span class="text-gray-400">{{ expandedPhases[phase.id] ? '▼' : '›' }}</span>
+                                    <span class="text-purple-500">📋</span>
+                                    <span class="font-medium text-sm">{{ phase.title }}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">{{ phase.progress }}%</span>
+                            </div>
+                            <div v-if="expandedPhases[phase.id]" class="mt-3 space-y-2 pl-6">
+                                <div v-for="step in phase.steps" :key="step.id" @click="openStepModal(step, phase)" class="bg-white rounded-lg p-2 cursor-pointer">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-blue-500">📝</span>
+                                        <span class="text-xs font-medium">{{ step.title }}</span>
+                                    </div>
+                                    <div class="flex flex-wrap gap-1 mt-1 pl-5">
+                                        <span v-for="item in step.action_items" :key="item.id" :class="['text-xs px-1.5 py-0.5 rounded', item.status === 'done' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600']">
+                                            {{ item.title.substring(0, 20) }}{{ item.title.length > 20 ? '...' : '' }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
         <!-- Phase Detail Modal -->
-        <div v-if="selectedPhase" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-purple-500 text-2xl">📋</span>
-                        <h2 class="text-xl font-bold text-gray-900">{{ selectedPhase.title }}</h2>
+        <div v-if="selectedPhase" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2 md:gap-3 min-w-0">
+                        <span class="text-purple-500 text-xl md:text-2xl">📋</span>
+                        <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedPhase.title }}</h2>
                     </div>
-                    <button @click="selectedPhase = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <button @click="selectedPhase = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div class="p-6 overflow-y-auto flex-1">
-                    <div class="grid grid-cols-3 gap-4 mb-6">
+                <div class="p-4 md:p-6 overflow-y-auto flex-1">
+                    <div class="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
                         <div class="text-center p-4 bg-gray-50 rounded-lg">
                             <div class="text-2xl font-bold text-gray-900">{{ selectedPhase.progress }}%</div>
                             <div class="text-sm text-gray-500">Progress</div>
@@ -430,12 +667,12 @@
                         </div>
                     </div>
 
-                    <div v-if="selectedPhase.description" class="mb-6">
+                    <div v-if="selectedPhase.description" class="mb-4 md:mb-6">
                         <h4 class="font-medium text-gray-900 mb-2">Description</h4>
-                        <p class="text-gray-600">{{ selectedPhase.description }}</p>
+                        <p class="text-gray-600 text-sm md:text-base">{{ selectedPhase.description }}</p>
                     </div>
 
-                    <div class="flex items-center gap-6 mb-6 text-sm">
+                    <div class="flex flex-wrap items-center gap-3 md:gap-6 mb-4 md:mb-6 text-sm">
                         <div v-if="selectedPhase.assignee_name" class="flex items-center gap-2">
                             <span class="text-gray-500">Assignee:</span>
                             <div class="flex items-center gap-2">
@@ -455,12 +692,12 @@
 
                     <h4 class="font-medium text-gray-900 mb-3">Steps</h4>
                     <div class="space-y-2">
-                        <div v-for="step in selectedPhase.steps" :key="step.id" @click="openStepModal(step, selectedPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center justify-between">
-                            <div class="flex items-center gap-2">
+                        <div v-for="step in selectedPhase.steps" :key="step.id" @click="openStepModal(step, selectedPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                            <div class="flex flex-wrap items-center gap-2 mb-1 sm:mb-0">
                                 <span :class="stepStatusClass(step.status)">{{ formatStatus(step.status) }}</span>
-                                <span>{{ step.title }}</span>
+                                <span class="text-sm md:text-base">{{ step.title }}</span>
                             </div>
-                            <div class="flex items-center gap-3 text-sm text-gray-500">
+                            <div class="flex items-center gap-3 text-xs md:text-sm text-gray-500 mt-1 sm:mt-0 sm:float-right">
                                 <span>{{ step.action_items?.length || 0 }} actions</span>
                                 <span>{{ step.progress }}%</span>
                             </div>
@@ -471,25 +708,25 @@
         </div>
 
         <!-- Step Detail Modal -->
-        <div v-if="selectedStep" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[80vh] overflow-hidden flex flex-col">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-blue-500 text-2xl">📝</span>
-                        <div>
-                            <h2 class="text-xl font-bold text-gray-900">{{ selectedStep.title }}</h2>
-                            <p class="text-sm text-gray-500">{{ selectedStepParentPhase?.title }}</p>
+        <div v-if="selectedStep" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[80vh] overflow-hidden flex flex-col">
+                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2 md:gap-3 min-w-0">
+                        <span class="text-blue-500 text-xl md:text-2xl flex-shrink-0">📝</span>
+                        <div class="min-w-0">
+                            <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedStep.title }}</h2>
+                            <p class="text-sm text-gray-500 truncate">{{ selectedStepParentPhase?.title }}</p>
                         </div>
                     </div>
-                    <button @click="selectedStep = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <button @click="selectedStep = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div class="p-6 overflow-y-auto flex-1">
-                    <div v-if="selectedStep.description" class="mb-6">
+                <div class="p-4 md:p-6 overflow-y-auto flex-1">
+                    <div v-if="selectedStep.description" class="mb-4 md:mb-6">
                         <h4 class="font-medium text-gray-900 mb-2">Description</h4>
-                        <p class="text-gray-600">{{ selectedStep.description }}</p>
+                        <p class="text-gray-600 text-sm md:text-base">{{ selectedStep.description }}</p>
                     </div>
 
-                    <div class="flex items-center gap-6 mb-6 text-sm">
+                    <div class="flex flex-wrap items-center gap-3 md:gap-6 mb-4 md:mb-6 text-sm">
                         <div v-if="selectedStep.assignee_name" class="flex items-center gap-2">
                             <span class="text-gray-500">Assignee:</span>
                             <span class="font-medium">{{ selectedStep.assignee_name }}</span>
@@ -506,14 +743,14 @@
 
                     <h4 class="font-medium text-gray-900 mb-3">Action Items</h4>
                     <div class="space-y-2">
-                        <div v-for="item in selectedStep.action_items" :key="item.id" @click="openActionModal(item, selectedStep, selectedStepParentPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <button @click.stop="toggleActionItem(item)" :class="['w-5 h-5 rounded border-2 flex items-center justify-center text-xs', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
+                        <div v-for="item in selectedStep.action_items" :key="item.id" @click="openActionModal(item, selectedStep, selectedStepParentPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+                            <div class="flex items-center gap-3 mb-2">
+                                <button @click.stop="toggleActionItem(item)" :class="['w-5 h-5 rounded border-2 flex items-center justify-center text-xs flex-shrink-0', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
                                     <span v-if="item.status === 'done'">✓</span>
                                 </button>
-                                <span :class="item.status === 'done' ? 'text-gray-400 line-through' : ''">{{ item.title }}</span>
+                                <span :class="['text-sm md:text-base', item.status === 'done' ? 'text-gray-400 line-through' : '']">{{ item.title }}</span>
                             </div>
-                            <div class="flex items-center gap-3 text-sm">
+                            <div class="flex flex-wrap items-center gap-2 md:gap-3 text-xs md:text-sm pl-8">
                                 <span v-if="item.assignee_name" class="text-gray-500">{{ item.assignee_name }}</span>
                                 <span v-if="item.due_date" class="text-gray-500">{{ formatDate(item.due_date) }}</span>
                                 <span :class="actionStatusClass(item.status)">{{ formatStatus(item.status) }}</span>
@@ -525,36 +762,36 @@
         </div>
 
         <!-- Action Item Detail Modal -->
-        <div v-if="selectedAction" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl max-w-lg w-full">
-                <div class="p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-3">
-                        <span class="text-orange-500 text-2xl">⚡</span>
-                        <div>
-                            <h2 class="text-lg font-bold text-gray-900">{{ selectedAction.title }}</h2>
-                            <p class="text-sm text-gray-500">{{ selectedActionParentStep?.title }} • {{ selectedActionParentPhase?.title }}</p>
+        <div v-if="selectedAction" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg max-h-[95vh] overflow-y-auto">
+                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-2 md:gap-3 min-w-0">
+                        <span class="text-brand-500 text-xl md:text-2xl flex-shrink-0">⚡</span>
+                        <div class="min-w-0">
+                            <h2 class="text-base md:text-lg font-bold text-gray-900 truncate">{{ selectedAction.title }}</h2>
+                            <p class="text-xs md:text-sm text-gray-500 truncate">{{ selectedActionParentStep?.title }} • {{ selectedActionParentPhase?.title }}</p>
                         </div>
                     </div>
-                    <button @click="selectedAction = null" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+                    <button @click="selectedAction = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div class="p-6">
-                    <div class="flex items-center gap-3 mb-4">
+                <div class="p-4 md:p-6">
+                    <div class="flex flex-wrap items-center gap-2 md:gap-3 mb-4">
                         <span :class="actionStatusBadgeClass(selectedAction.status)">{{ formatStatus(selectedAction.status) }}</span>
-                        <button @click="toggleActionItem(selectedAction)" class="text-sm text-orange-500 hover:text-orange-600">
+                        <button @click="toggleActionItem(selectedAction)" class="text-sm text-brand-500 hover:text-brand-600">
                             {{ selectedAction.status === 'done' ? 'Mark as To Do' : 'Mark as Done' }}
                         </button>
                     </div>
 
                     <div v-if="selectedAction.description" class="mb-4">
                         <h4 class="font-medium text-gray-900 mb-1">Description</h4>
-                        <p class="text-gray-600">{{ selectedAction.description }}</p>
+                        <p class="text-gray-600 text-sm md:text-base">{{ selectedAction.description }}</p>
                     </div>
 
-                    <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4 text-sm">
                         <div v-if="selectedAction.assignee_name">
                             <span class="text-gray-500">Assignee</span>
                             <div class="flex items-center gap-2 mt-1">
-                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-red-500 flex items-center justify-center text-white text-xs">{{ selectedAction.assignee_name.charAt(0) }}</div>
+                                <div class="w-6 h-6 rounded-full bg-brand-500 flex items-center justify-center text-white text-xs">{{ selectedAction.assignee_name.charAt(0) }}</div>
                                 <span class="font-medium">{{ selectedAction.assignee_name }}</span>
                             </div>
                         </div>
@@ -570,7 +807,7 @@
 
                     <div v-if="selectedAction.notes" class="mt-4">
                         <h4 class="font-medium text-gray-900 mb-1">Notes</h4>
-                        <p class="text-gray-600">{{ selectedAction.notes }}</p>
+                        <p class="text-gray-600 text-sm md:text-base">{{ selectedAction.notes }}</p>
                     </div>
                 </div>
             </div>
@@ -604,7 +841,14 @@
                         { label: 'On Hold', value: 'on_hold' },
                         { label: 'Completed', value: 'completed' },
                     ],
-                    API_BASE: '/api'
+                    API_BASE: '/api',
+                    // Mobile
+                    mobileMenuOpen: false,
+                    // AI Agent
+                    showAIAgent: false,
+                    aiMessages: [],
+                    aiInput: '',
+                    aiLoading: false
                 };
             },
             computed: {
@@ -699,12 +943,31 @@
                     if (!dateStr) return '';
                     return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
                 },
+                formatRelativeTime(dateStr) {
+                    if (!dateStr) return '';
+                    const date = new Date(dateStr);
+                    const now = new Date();
+                    const diffMs = now - date;
+                    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                    if (diffDays === 0) return 'today';
+                    if (diffDays === 1) return 'yesterday';
+                    if (diffDays < 7) return `${diffDays} days ago`;
+                    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+                    if (diffDays < 365) return `${Math.floor(diffDays / 30)} months ago`;
+                    return `${Math.floor(diffDays / 365)} years ago`;
+                },
                 statusBadgeClass(status) {
-                    const c = { draft: 'bg-gray-100 text-gray-600', active: 'bg-green-100 text-green-700', on_hold: 'bg-yellow-100 text-yellow-700', completed: 'bg-blue-100 text-blue-700', archived: 'bg-gray-100 text-gray-500' };
-                    return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
+                    const c = {
+                        draft: 'bg-gray-100 text-gray-600',
+                        active: 'bg-emerald-50 text-emerald-700',
+                        on_hold: 'bg-amber-50 text-amber-700',
+                        completed: 'bg-teal-50 text-teal-700',
+                        archived: 'bg-gray-100 text-gray-500'
+                    };
+                    return `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium before:content-['•'] before:text-current ${c[status] || ''}`;
                 },
                 priorityBadgeClass(priority) {
-                    const c = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100 text-blue-600', high: 'bg-orange-100 text-orange-600', critical: 'bg-red-100 text-red-600' };
+                    const c = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100 text-blue-600', high: 'bg-amber-100 text-amber-700', critical: 'bg-red-100 text-red-600' };
                     return `px-3 py-1 rounded-full text-xs font-medium ${c[priority] || ''}`;
                 },
                 phaseStatusClass(status) {
@@ -722,6 +985,69 @@
                 actionStatusBadgeClass(status) {
                     const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-600', blocked: 'bg-red-100 text-red-600', done: 'bg-green-100 text-green-600' };
                     return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
+                },
+                // AI Agent Methods
+                toggleAIAgent() {
+                    this.showAIAgent = !this.showAIAgent;
+                    if (this.showAIAgent && this.aiMessages.length === 0) {
+                        this.aiMessages = [];
+                    }
+                },
+                handleAIMouseLeave() {
+                    // Small delay to allow moving to the popup
+                    setTimeout(() => {
+                        const aiContainer = document.querySelector('.fixed.bottom-6.right-6');
+                        if (aiContainer && !aiContainer.matches(':hover')) {
+                            this.showAIAgent = false;
+                        }
+                    }, 100);
+                },
+                askAI(question) {
+                    this.aiInput = question;
+                    this.sendAIMessage();
+                },
+                async sendAIMessage() {
+                    if (!this.aiInput.trim() || this.aiLoading) return;
+
+                    const userMessage = this.aiInput.trim();
+                    this.aiMessages.push({
+                        role: 'user',
+                        content: userMessage,
+                        timestamp: new Date()
+                    });
+                    this.aiInput = '';
+                    this.aiLoading = true;
+
+                    try {
+                        const res = await fetch(`${this.API_BASE}/paths/${this.selectedPath.id}/ai_query/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: userMessage })
+                        });
+                        const data = await res.json();
+                        this.aiMessages.push({
+                            role: 'assistant',
+                            content: data.response,
+                            timestamp: new Date()
+                        });
+                    } catch (err) {
+                        console.error('AI Error:', err);
+                        this.aiMessages.push({
+                            role: 'assistant',
+                            content: 'Sorry, I encountered an error. Please try again.',
+                            timestamp: new Date()
+                        });
+                    } finally {
+                        this.aiLoading = false;
+                        this.$nextTick(() => {
+                            const container = this.$refs.chatContainer;
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                },
+                formatTime(date) {
+                    if (!date) return '';
+                    return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 }
             },
             mounted() { this.fetchPaths(); }
