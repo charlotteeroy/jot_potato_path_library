@@ -1,8 +1,60 @@
 # Jot Potato Path Library
 
-## Project Overview
+## Product Vision
 
-Path Library is a feature for **Jot Potato**, an AI-powered customer feedback intelligence platform. A Path represents the complete journey from identifying an issue to implementing a solution.
+**Jot Potato** is an AI-powered customer feedback intelligence platform designed to help small businesses turn messy, multi-channel feedback into clear, prioritized actions — and then actually track whether those actions improved the customer experience.
+
+### The Problem
+
+Small teams receive feedback everywhere (Google Reviews, Instagram DMs, emails, Shopify comments, Airbnb messages, forms…), but they lack the time, structure, and tools to convert all of it into a consistent improvement loop. Jot Potato becomes the system that captures what customers are really saying, reveals why issues happen, and guides teams toward the most impactful improvements.
+
+### Vision Statement
+
+> Make customer-driven improvement effortless — even for teams with no product, data, or research function.
+
+Jot Potato gives small businesses the same advantage as mature product teams: a continuous feedback cycle where every customer comment becomes a signal, every signal becomes a decision, and every decision becomes measurable progress.
+
+It's not "analytics for feedback." It's a **decision engine**: it transforms raw customer input into a roadmap, and a roadmap into outcomes.
+
+### The End-to-End Loop
+
+| Step | What It Does | Output |
+|------|--------------|--------|
+| **1. Feedback Centralization** | Collects and unifies feedback from multiple sources | Clean, structured feedback hub |
+| **2. AI Interpretation** | Detects patterns, hidden pain points, themes, urgency signals, emotional intensity | Grouped themes + insight clarity |
+| **3. Root Cause Analysis** | Uses heatmaps, cause diagrams to map operational causes | Problems become explainable and solvable |
+| **4. Action Recommendations** | Proposes concrete initiatives, quick wins vs deeper fixes | Prioritized action plan |
+| **5. Progress Tracking** | Follows initiative status, ownership, impact monitoring | Measurable customer experience improvement |
+
+### Target Users
+
+Small businesses that run on reputation and repeated customer trust:
+- Restaurants
+- Airbnb hosts
+- Shopify boutiques
+- E-commerce stores
+
+These teams need simple clarity + fast execution (not enterprise complexity).
+
+### What Makes It Different
+
+Most tools either collect feedback (but don't transform it into actions) or offer analytics (but require time, expertise, and interpretation).
+
+Jot Potato completes the loop:
+
+**Feedback → Insight → Root Cause → Initiatives → Measurable Improvement**
+
+It's a "customer experience operating system" built for small teams.
+
+### One-Sentence Positioning
+
+> Jot Potato helps small businesses turn customer feedback from every channel into prioritized improvements — and track the impact over time.
+
+---
+
+## Path Library Feature
+
+Path Library is the **progress tracking** component of Jot Potato. A Path represents the complete journey from identifying an issue to implementing a solution.
 
 ### Data Model Hierarchy
 
