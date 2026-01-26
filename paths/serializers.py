@@ -23,36 +23,58 @@ class StepSerializer(serializers.ModelSerializer):
     """Serializer for Step model with nested action items."""
     action_items = ActionItemSerializer(many=True, read_only=True)
     progress = serializers.SerializerMethodField()
+    action_items_completed = serializers.SerializerMethodField()
+    action_items_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Step
         fields = [
             'id', 'phase', 'title', 'description', 'status',
+            'priority', 'category', 'workload_days',
             'assignee_id', 'assignee_name', 'due_date',
-            'order', 'action_items', 'progress', 'created_at', 'updated_at'
+            'order', 'action_items', 'progress',
+            'action_items_completed', 'action_items_total',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_progress(self, obj):
         return obj.calculate_progress()
+
+    def get_action_items_completed(self, obj):
+        return obj.action_items.filter(status='done').count()
+
+    def get_action_items_total(self, obj):
+        return obj.action_items.count()
 
 
 class PhaseSerializer(serializers.ModelSerializer):
     """Serializer for Phase model with nested steps."""
     steps = StepSerializer(many=True, read_only=True)
     progress = serializers.SerializerMethodField()
+    steps_completed = serializers.SerializerMethodField()
+    steps_total = serializers.SerializerMethodField()
 
     class Meta:
         model = Phase
         fields = [
             'id', 'path', 'title', 'description', 'status',
+            'priority', 'category', 'workload_days',
             'assignee_id', 'assignee_name', 'due_date',
-            'order', 'steps', 'progress', 'created_at', 'updated_at'
+            'order', 'steps', 'progress',
+            'steps_completed', 'steps_total',
+            'created_at', 'updated_at'
         ]
         read_only_fields = ['id', 'created_at', 'updated_at']
 
     def get_progress(self, obj):
         return obj.calculate_progress()
+
+    def get_steps_completed(self, obj):
+        return obj.steps.filter(status='done').count()
+
+    def get_steps_total(self, obj):
+        return obj.steps.count()
 
 
 class PhaseListSerializer(serializers.ModelSerializer):
@@ -62,7 +84,11 @@ class PhaseListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Phase
-        fields = ['id', 'title', 'status', 'order', 'step_count', 'progress', 'assignee_name', 'due_date']
+        fields = [
+            'id', 'title', 'status', 'order', 'step_count', 'progress',
+            'priority', 'category', 'workload_days',
+            'assignee_name', 'due_date'
+        ]
 
     def get_step_count(self, obj):
         return obj.steps.count()

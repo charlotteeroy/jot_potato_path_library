@@ -257,6 +257,17 @@ class Phase(BaseModel):
     )
     order = models.PositiveIntegerField(default=0)
 
+    # Priority and category
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.MEDIUM
+    )
+    category = models.CharField(max_length=100, blank=True, help_text="Category like Process, Technical, etc.")
+
+    # Workload estimation
+    workload_days = models.PositiveIntegerField(null=True, blank=True, help_text="Estimated days of work")
+
     # Assignee and timeline
     assignee_id = models.UUIDField(null=True, blank=True)
     assignee_name = models.CharField(max_length=100, blank=True)
@@ -301,6 +312,17 @@ class Step(BaseModel):
         default=ItemStatus.TODO
     )
     order = models.PositiveIntegerField(default=0)
+
+    # Priority and category
+    priority = models.CharField(
+        max_length=20,
+        choices=Priority.choices,
+        default=Priority.MEDIUM
+    )
+    category = models.CharField(max_length=100, blank=True, help_text="Category like Process, Technical, etc.")
+
+    # Workload estimation
+    workload_days = models.PositiveIntegerField(null=True, blank=True, help_text="Estimated days of work")
 
     # Assignee and timeline
     assignee_id = models.UUIDField(null=True, blank=True)

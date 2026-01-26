@@ -643,65 +643,118 @@
 
         <!-- Phase Detail Modal -->
         <div v-if="selectedPhase" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[80vh] overflow-hidden flex flex-col">
-                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2 md:gap-3 min-w-0">
-                        <span class="text-purple-500 text-xl md:text-2xl">📋</span>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[85vh] overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="p-4 md:p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-purple-500 text-xl">📋</span>
                         <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedPhase.title }}</h2>
                     </div>
                     <button @click="selectedPhase = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div class="p-4 md:p-6 overflow-y-auto flex-1">
-                    <div class="grid grid-cols-3 gap-2 md:gap-4 mb-4 md:mb-6">
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-gray-900">{{ selectedPhase.progress }}%</div>
-                            <div class="text-sm text-gray-500">Progress</div>
+
+                <div class="p-4 md:p-5 overflow-y-auto flex-1">
+                    <!-- Description -->
+                    <div v-if="selectedPhase.description" class="mb-5">
+                        <div class="flex items-center gap-2 text-gray-500 mb-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                            </svg>
+                            <span class="text-sm font-medium">Description</span>
                         </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-gray-900">{{ selectedPhase.steps?.length || 0 }}</div>
-                            <div class="text-sm text-gray-500">Steps</div>
+                        <p class="text-gray-700 text-sm leading-relaxed">{{ selectedPhase.description }}</p>
+                    </div>
+
+                    <!-- Progress Bar -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Progress</span>
+                            <span class="text-sm font-bold text-gray-900">{{ selectedPhase.progress }}%</span>
                         </div>
-                        <div class="text-center p-4 bg-gray-50 rounded-lg">
-                            <div class="text-2xl font-bold text-gray-900">{{ countPhaseActions(selectedPhase) }}</div>
-                            <div class="text-sm text-gray-500">Actions</div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all" :class="selectedPhase.progress >= 80 ? 'bg-green-500' : selectedPhase.progress >= 50 ? 'bg-blue-500' : 'bg-red-400'" :style="{ width: selectedPhase.progress + '%' }"></div>
                         </div>
                     </div>
 
-                    <div v-if="selectedPhase.description" class="mb-4 md:mb-6">
-                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
-                        <p class="text-gray-600 text-sm md:text-base">{{ selectedPhase.description }}</p>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-3 md:gap-6 mb-4 md:mb-6 text-sm">
-                        <div v-if="selectedPhase.assignee_name" class="flex items-center gap-2">
-                            <span class="text-gray-500">Assignee:</span>
-                            <div class="flex items-center gap-2">
-                                <div class="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs">{{ selectedPhase.assignee_name.charAt(0) }}</div>
-                                <span class="font-medium">{{ selectedPhase.assignee_name }}</span>
-                            </div>
-                        </div>
+                    <!-- Timeline & Workload -->
+                    <div class="flex flex-wrap gap-x-8 gap-y-2 mb-5 text-sm">
                         <div v-if="selectedPhase.due_date" class="flex items-center gap-2">
-                            <span class="text-gray-500">Due:</span>
-                            <span class="font-medium">{{ formatDateLong(selectedPhase.due_date) }}</span>
+                            <span class="text-blue-500 font-medium">Due date</span>
+                            <span class="text-gray-900">{{ formatDateLong(selectedPhase.due_date) }}</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-gray-500">Status:</span>
-                            <span :class="phaseStatusClass(selectedPhase.status)">{{ formatStatus(selectedPhase.status) }}</span>
+                        <div v-if="selectedPhase.workload_days" class="flex items-center gap-2">
+                            <span class="text-gray-500 font-medium">Workload</span>
+                            <span class="text-gray-900">{{ selectedPhase.workload_days }} days of work</span>
                         </div>
                     </div>
 
-                    <h4 class="font-medium text-gray-900 mb-3">Steps</h4>
-                    <div class="space-y-2">
-                        <div v-for="step in selectedPhase.steps" :key="step.id" @click="openStepModal(step, selectedPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
-                            <div class="flex flex-wrap items-center gap-2 mb-1 sm:mb-0">
-                                <span :class="stepStatusClass(step.status)">{{ formatStatus(step.status) }}</span>
-                                <span class="text-sm md:text-base">{{ step.title }}</span>
+                    <!-- Metadata Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+                        <div>
+                            <span class="text-gray-500 block mb-1">Assignee</span>
+                            <div v-if="selectedPhase.assignee_name" class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-purple-500 flex items-center justify-center text-white text-xs font-medium">{{ selectedPhase.assignee_name.charAt(0) }}</div>
+                                <span class="font-medium text-gray-900">{{ selectedPhase.assignee_name }}</span>
                             </div>
-                            <div class="flex items-center gap-3 text-xs md:text-sm text-gray-500 mt-1 sm:mt-0 sm:float-right">
-                                <span>{{ step.action_items?.length || 0 }} actions</span>
-                                <span>{{ step.progress }}%</span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Priority</span>
+                            <span v-if="selectedPhase.priority" :class="priorityBadgeClass(selectedPhase.priority)">
+                                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
+                                Priority {{ selectedPhase.priority === 'critical' ? '1' : selectedPhase.priority === 'high' ? '2' : selectedPhase.priority === 'medium' ? '3' : '4' }}
+                            </span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Status</span>
+                            <span :class="statusRiskBadgeClass(selectedPhase.status)">{{ formatStatusRisk(selectedPhase.status) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Category</span>
+                            <span v-if="selectedPhase.category" class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">{{ selectedPhase.category }}</span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Steps Section -->
+                    <div class="border-t border-gray-100 pt-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
+                                <span class="font-semibold text-gray-900">Steps</span>
+                                <span class="text-sm text-gray-500">{{ selectedPhase.steps_completed || 0 }}/{{ selectedPhase.steps?.length || 0 }} completed</span>
+                            </div>
+                            <button class="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                                <span>+</span> Add task
+                            </button>
+                        </div>
+
+                        <!-- Steps Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div v-for="(step, index) in selectedPhase.steps" :key="step.id"
+                                @click="openStepModal(step, selectedPhase)"
+                                class="p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm cursor-pointer transition">
+                                <div class="flex items-start gap-3">
+                                    <div :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5', step.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
+                                        <svg v-if="step.status === 'done'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 class="font-medium text-gray-900 text-sm">{{ selectedPhase.order }}.{{ index + 1 }}. {{ step.title }}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                                            <span :class="statusRiskBadgeClass(step.status)" class="text-xs">{{ formatStatusRisk(step.status) }}</span>
+                                            <span v-if="step.due_date" class="flex items-center gap-1 text-xs text-gray-500">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                {{ formatDate(step.due_date) }}
+                                            </span>
+                                            <div v-if="step.assignee_name" class="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs ml-auto">{{ step.assignee_name.charAt(0) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <div v-if="!selectedPhase.steps?.length" class="text-center py-8 text-gray-500 text-sm">No steps defined yet.</div>
                     </div>
                 </div>
             </div>
@@ -709,53 +762,125 @@
 
         <!-- Step Detail Modal -->
         <div v-if="selectedStep" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[80vh] overflow-hidden flex flex-col">
-                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
-                    <div class="flex items-center gap-2 md:gap-3 min-w-0">
-                        <span class="text-blue-500 text-xl md:text-2xl flex-shrink-0">📝</span>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] md:max-h-[85vh] overflow-hidden flex flex-col">
+                <!-- Header -->
+                <div class="p-4 md:p-5 border-b border-gray-100 flex items-center justify-between">
+                    <div class="flex items-center gap-3 min-w-0">
+                        <span class="text-blue-500 text-xl">📝</span>
                         <div class="min-w-0">
                             <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedStep.title }}</h2>
-                            <p class="text-sm text-gray-500 truncate">{{ selectedStepParentPhase?.title }}</p>
+                            <p class="text-sm text-gray-500 flex items-center gap-1">
+                                <span>Phase</span>
+                                <span class="text-purple-500">📋</span>
+                                <span>{{ selectedStepParentPhase?.title }}</span>
+                            </p>
                         </div>
                     </div>
                     <button @click="selectedStep = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
                 </div>
-                <div class="p-4 md:p-6 overflow-y-auto flex-1">
-                    <div v-if="selectedStep.description" class="mb-4 md:mb-6">
-                        <h4 class="font-medium text-gray-900 mb-2">Description</h4>
-                        <p class="text-gray-600 text-sm md:text-base">{{ selectedStep.description }}</p>
+
+                <div class="p-4 md:p-5 overflow-y-auto flex-1">
+                    <!-- Description -->
+                    <div v-if="selectedStep.description" class="mb-5">
+                        <div class="flex items-center gap-2 text-gray-500 mb-2">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/>
+                            </svg>
+                            <span class="text-sm font-medium">Description</span>
+                        </div>
+                        <p class="text-gray-700 text-sm leading-relaxed">{{ selectedStep.description }}</p>
                     </div>
 
-                    <div class="flex flex-wrap items-center gap-3 md:gap-6 mb-4 md:mb-6 text-sm">
-                        <div v-if="selectedStep.assignee_name" class="flex items-center gap-2">
-                            <span class="text-gray-500">Assignee:</span>
-                            <span class="font-medium">{{ selectedStep.assignee_name }}</span>
+                    <!-- Progress Bar -->
+                    <div class="mb-5">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="text-sm font-medium text-gray-700">Progress</span>
+                            <span class="text-sm font-bold text-gray-900">{{ selectedStep.progress }}%</span>
                         </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="h-2 rounded-full transition-all" :class="selectedStep.progress >= 80 ? 'bg-green-500' : selectedStep.progress >= 50 ? 'bg-blue-500' : 'bg-red-400'" :style="{ width: selectedStep.progress + '%' }"></div>
+                        </div>
+                    </div>
+
+                    <!-- Timeline & Workload -->
+                    <div class="flex flex-wrap gap-x-8 gap-y-2 mb-5 text-sm">
                         <div v-if="selectedStep.due_date" class="flex items-center gap-2">
-                            <span class="text-gray-500">Due:</span>
-                            <span class="font-medium">{{ formatDateLong(selectedStep.due_date) }}</span>
+                            <span class="text-blue-500 font-medium">Timeline</span>
+                            <span class="text-gray-900">{{ formatDateLong(selectedStep.due_date) }}</span>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-gray-500">Progress:</span>
-                            <span class="font-medium">{{ selectedStep.progress }}%</span>
+                        <div v-if="selectedStep.workload_days" class="flex items-center gap-2">
+                            <span class="text-gray-500 font-medium">Workload</span>
+                            <span class="text-gray-900">{{ selectedStep.workload_days }} days of work</span>
                         </div>
                     </div>
 
-                    <h4 class="font-medium text-gray-900 mb-3">Action Items</h4>
-                    <div class="space-y-2">
-                        <div v-for="item in selectedStep.action_items" :key="item.id" @click="openActionModal(item, selectedStep, selectedStepParentPhase)" class="p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
-                            <div class="flex items-center gap-3 mb-2">
-                                <button @click.stop="toggleActionItem(item)" :class="['w-5 h-5 rounded border-2 flex items-center justify-center text-xs flex-shrink-0', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
-                                    <span v-if="item.status === 'done'">✓</span>
-                                </button>
-                                <span :class="['text-sm md:text-base', item.status === 'done' ? 'text-gray-400 line-through' : '']">{{ item.title }}</span>
+                    <!-- Metadata Grid -->
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6 text-sm">
+                        <div>
+                            <span class="text-gray-500 block mb-1">Assignee</span>
+                            <div v-if="selectedStep.assignee_name" class="flex items-center gap-2">
+                                <div class="w-7 h-7 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs font-medium">{{ selectedStep.assignee_name.charAt(0) }}</div>
+                                <span class="font-medium text-gray-900">{{ selectedStep.assignee_name }}</span>
                             </div>
-                            <div class="flex flex-wrap items-center gap-2 md:gap-3 text-xs md:text-sm pl-8">
-                                <span v-if="item.assignee_name" class="text-gray-500">{{ item.assignee_name }}</span>
-                                <span v-if="item.due_date" class="text-gray-500">{{ formatDate(item.due_date) }}</span>
-                                <span :class="actionStatusClass(item.status)">{{ formatStatus(item.status) }}</span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Priority</span>
+                            <span v-if="selectedStep.priority" :class="priorityBadgeClass(selectedStep.priority)">
+                                <svg class="w-3 h-3 inline mr-1" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
+                                Priority {{ selectedStep.priority === 'critical' ? '1' : selectedStep.priority === 'high' ? '2' : selectedStep.priority === 'medium' ? '3' : '4' }}
+                            </span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Status</span>
+                            <span :class="statusRiskBadgeClass(selectedStep.status)">{{ formatStatusRisk(selectedStep.status) }}</span>
+                        </div>
+                        <div>
+                            <span class="text-gray-500 block mb-1">Category</span>
+                            <span v-if="selectedStep.category" class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">{{ selectedStep.category }}</span>
+                            <span v-else class="text-gray-400">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Action Items Section -->
+                    <div class="border-t border-gray-100 pt-5">
+                        <div class="flex items-center justify-between mb-4">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                <span class="font-semibold text-gray-900">Actions items</span>
+                                <span class="text-sm text-gray-500">{{ selectedStep.action_items_completed || countCompletedActions(selectedStep) }}/{{ selectedStep.action_items?.length || 0 }} completed</span>
+                            </div>
+                            <button class="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                                <span>+</span> Add task
+                            </button>
+                        </div>
+
+                        <!-- Action Items Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <div v-for="item in selectedStep.action_items" :key="item.id"
+                                @click="openActionModal(item, selectedStep, selectedStepParentPhase)"
+                                class="p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm cursor-pointer transition">
+                                <div class="flex items-start gap-3">
+                                    <button @click.stop="toggleActionItem(item)" :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
+                                        <svg v-if="item.status === 'done'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                    </button>
+                                    <div class="flex-1 min-w-0">
+                                        <h4 :class="['font-medium text-sm', item.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900']">{{ item.title }}</h4>
+                                        <div class="flex flex-wrap items-center gap-2 mt-2">
+                                            <span :class="actionItemStatusBadgeClass(item)" class="text-xs">{{ formatActionItemStatus(item) }}</span>
+                                            <span v-if="item.due_date" class="flex items-center gap-1 text-xs text-gray-500">
+                                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                                                {{ formatDate(item.due_date) }}
+                                            </span>
+                                            <div v-if="item.assignee_name" class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs ml-auto">{{ item.assignee_name.charAt(0) }}</div>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <div v-if="!selectedStep.action_items?.length" class="text-center py-8 text-gray-500 text-sm">No action items defined yet.</div>
                     </div>
                 </div>
             </div>
@@ -985,6 +1110,50 @@
                 actionStatusBadgeClass(status) {
                     const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-600', blocked: 'bg-red-100 text-red-600', done: 'bg-green-100 text-green-600' };
                     return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
+                },
+                // Status risk badge for Phase/Step detail modals
+                statusRiskBadgeClass(status) {
+                    const c = {
+                        todo: 'bg-gray-100 text-gray-700',
+                        in_progress: 'bg-blue-100 text-blue-700',
+                        blocked: 'bg-red-100 text-red-700',
+                        done: 'bg-green-100 text-green-700'
+                    };
+                    return `px-2 py-1 rounded text-xs font-medium ${c[status] || 'bg-gray-100 text-gray-700'}`;
+                },
+                formatStatusRisk(status) {
+                    const map = {
+                        todo: 'Not started',
+                        in_progress: 'In progress',
+                        blocked: 'At Risk',
+                        done: 'Done'
+                    };
+                    return map[status] || status;
+                },
+                // Action item status for cards
+                actionItemStatusBadgeClass(item) {
+                    if (item.status === 'done') return 'bg-green-100 text-green-700 px-2 py-0.5 rounded';
+                    if (item.status === 'in_progress') return 'bg-blue-100 text-blue-700 px-2 py-0.5 rounded';
+                    if (item.status === 'blocked') return 'bg-red-100 text-red-700 px-2 py-0.5 rounded';
+                    // Check if overdue
+                    if (item.due_date && new Date(item.due_date) < new Date()) {
+                        return 'bg-red-100 text-red-700 px-2 py-0.5 rounded';
+                    }
+                    return 'bg-gray-100 text-gray-700 px-2 py-0.5 rounded';
+                },
+                formatActionItemStatus(item) {
+                    if (item.status === 'done') return 'Done';
+                    if (item.status === 'in_progress') return 'In progress';
+                    if (item.status === 'blocked') return 'Blocked';
+                    // Check if overdue
+                    if (item.due_date && new Date(item.due_date) < new Date() && item.status !== 'done') {
+                        return 'Overdue';
+                    }
+                    return 'Not started';
+                },
+                countCompletedActions(step) {
+                    if (!step.action_items) return 0;
+                    return step.action_items.filter(i => i.status === 'done').length;
                 },
                 // AI Agent Methods
                 toggleAIAgent() {
