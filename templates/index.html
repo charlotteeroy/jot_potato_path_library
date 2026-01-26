@@ -386,6 +386,110 @@
                 </div>
             </div>
 
+            <!-- AI Floating Bubble -->
+            <div v-if="selectedPath" class="fixed bottom-6 right-6 z-[55]" @mouseenter="showAIAgent = true" @mouseleave="handleAIMouseLeave">
+                <!-- Bubble Button -->
+                <button
+                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 bg-violet-600 hover:bg-violet-700"
+                >
+                    <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
+                        <path d="M5 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z"/>
+                        <path d="M18 14l.75 1.5 1.5.75-1.5.75L18 18.5l-.75-1.5-1.5-.75 1.5-.75L18 14z"/>
+                    </svg>
+                </button>
+
+                <!-- Chat Popup Box -->
+                <div v-if="showAIAgent" class="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                    <!-- Header -->
+                    <div class="p-4 border-b border-gray-100">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                <svg class="w-5 h-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
+                                    <path d="M5 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z"/>
+                                </svg>
+                            </div>
+                            <div class="min-w-0">
+                                <h3 class="font-semibold text-gray-900">AI Project Assistant</h3>
+                                <p class="text-sm text-gray-500 truncate">Ask questions about this project</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Chat Messages -->
+                    <div class="h-56 sm:h-64 overflow-y-auto p-4 bg-gray-50" ref="chatContainer">
+                        <!-- Welcome/Initial Message -->
+                        <div v-if="aiMessages.length === 0" class="flex justify-start">
+                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] shadow-sm">
+                                <p class="text-sm text-gray-700">I'm analyzing the "{{ selectedPath.title }}" project. I can help you understand project insights, suggest improvements, or answer questions about this specific project.</p>
+                                <p class="text-xs text-gray-400 mt-2">{{ formatTime(new Date()) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Messages -->
+                        <div v-for="(msg, index) in aiMessages" :key="index" :class="['flex mb-3', msg.role === 'user' ? 'justify-end' : 'justify-start']">
+                            <div :class="['max-w-[90%] rounded-2xl px-4 py-3', msg.role === 'user' ? 'bg-violet-600 text-white rounded-br-md' : 'bg-white border border-gray-200 text-gray-700 rounded-bl-md shadow-sm']">
+                                <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
+                                <p :class="['text-xs mt-2', msg.role === 'user' ? 'text-violet-200' : 'text-gray-400']">{{ formatTime(msg.timestamp) }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Typing Indicator -->
+                        <div v-if="aiLoading" class="flex justify-start">
+                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                                <div class="flex items-center gap-1">
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    <div class="px-3 py-2 border-t border-gray-100 bg-white overflow-x-auto">
+                        <div class="flex gap-2 min-w-max">
+                            <button @click="askAI('What are the success factors for this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                                </svg>
+                                Success Factors
+                            </button>
+                            <button @click="askAI('What are the main challenges and blockers?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                Challenges
+                            </button>
+                            <button @click="askAI('How can we improve this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                                <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                </svg>
+                                Improvements
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Input -->
+                    <div class="px-3 py-3 border-t border-gray-100 bg-white">
+                        <div class="flex gap-2 items-center">
+                            <input
+                                v-model="aiInput"
+                                @keyup.enter="sendAIMessage"
+                                type="text"
+                                placeholder="How can we improve?"
+                                class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                            />
+                            <button @click="sendAIMessage" :disabled="!aiInput.trim() || aiLoading" class="w-10 h-10 flex-shrink-0 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </main>
         </div>
 
@@ -907,7 +1011,12 @@
                     ],
                     API_BASE: '/api',
                     // Mobile
-                    mobileMenuOpen: false
+                    mobileMenuOpen: false,
+                    // AI Agent
+                    showAIAgent: false,
+                    aiMessages: [],
+                    aiInput: '',
+                    aiLoading: false
                 };
             },
             computed: {
@@ -1078,6 +1187,62 @@
                 countCompletedActions(step) {
                     if (!step.action_items) return 0;
                     return step.action_items.filter(i => i.status === 'done').length;
+                },
+                // AI Agent Methods
+                handleAIMouseLeave() {
+                    setTimeout(() => {
+                        const aiContainer = document.querySelector('.fixed.bottom-6.right-6');
+                        if (aiContainer && !aiContainer.matches(':hover')) {
+                            this.showAIAgent = false;
+                        }
+                    }, 100);
+                },
+                askAI(question) {
+                    this.aiInput = question;
+                    this.sendAIMessage();
+                },
+                async sendAIMessage() {
+                    if (!this.aiInput.trim() || this.aiLoading) return;
+
+                    const userMessage = this.aiInput.trim();
+                    this.aiMessages.push({
+                        role: 'user',
+                        content: userMessage,
+                        timestamp: new Date()
+                    });
+                    this.aiInput = '';
+                    this.aiLoading = true;
+
+                    try {
+                        const res = await fetch(`${this.API_BASE}/paths/${this.selectedPath.id}/ai_query/`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ query: userMessage })
+                        });
+                        const data = await res.json();
+                        this.aiMessages.push({
+                            role: 'assistant',
+                            content: data.response,
+                            timestamp: new Date()
+                        });
+                    } catch (err) {
+                        console.error('AI Error:', err);
+                        this.aiMessages.push({
+                            role: 'assistant',
+                            content: 'Sorry, I encountered an error. Please try again.',
+                            timestamp: new Date()
+                        });
+                    } finally {
+                        this.aiLoading = false;
+                        this.$nextTick(() => {
+                            const container = this.$refs.chatContainer;
+                            if (container) container.scrollTop = container.scrollHeight;
+                        });
+                    }
+                },
+                formatTime(date) {
+                    if (!date) return '';
+                    return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
                 }
             },
             mounted() { this.fetchPaths(); }
