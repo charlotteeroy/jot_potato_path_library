@@ -891,43 +891,35 @@
                         </div>
 
                         <!-- Steps Section -->
-                        <div class="border-t border-gray-100 pt-5">
+                        <div class="border-t border-gray-100/50 pt-5">
                             <div class="flex items-center justify-between mb-4">
                                 <div class="flex items-center gap-2">
-                                    <svg class="w-4 h-4 text-purple-500" fill="currentColor" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z"/></svg>
-                                    <span class="font-semibold text-gray-900">Steps</span>
+                                    <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    <span class="font-semibold text-[#1F1F1F]">Steps</span>
                                     <span class="text-sm text-gray-500">{{ selectedPhase.steps_completed || 0 }}/{{ selectedPhase.steps?.length || 0 }} completed</span>
                                 </div>
-                                <button class="flex items-center gap-1 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-                                    <span>+</span> Add task
-                                </button>
                             </div>
 
-                            <!-- Steps Grid -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div v-for="(step, index) in selectedPhase.steps" :key="step.id"
-                                    @click="openStepModal(step, selectedPhase)"
-                                    class="p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm cursor-pointer transition">
-                                    <div class="flex items-start gap-3">
-                                        <div :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5', step.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
+                            <!-- Simple Steps List (max 3) -->
+                            <div class="space-y-2">
+                                <div v-for="step in selectedPhase.steps?.slice(0, 3)" :key="step.id"
+                                    class="flex items-center justify-between py-2 px-3 bg-gray-50/70 rounded-xl">
+                                    <div class="flex items-center gap-3">
+                                        <div :class="['w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0', step.status === 'done' ? 'bg-emerald-500 text-white' : 'bg-gray-200']">
                                             <svg v-if="step.status === 'done'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
                                         </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h4 class="font-medium text-gray-900 text-sm">{{ selectedPhase.order }}.{{ index + 1 }}. {{ step.title }}</h4>
-                                            <div class="flex flex-wrap items-center gap-2 mt-2">
-                                                <span :class="statusRiskBadgeClass(step.status)" class="text-xs">{{ formatStatusRisk(step.status) }}</span>
-                                                <span v-if="step.due_date" class="flex items-center gap-1 text-xs text-gray-500">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    {{ formatDate(step.due_date) }}
-                                                </span>
-                                                <div v-if="step.assignee_name" class="w-6 h-6 rounded-full bg-gradient-to-br from-green-400 to-blue-500 flex items-center justify-center text-white text-xs ml-auto">{{ step.assignee_name.charAt(0) }}</div>
-                                            </div>
-                                        </div>
+                                        <span :class="['text-sm', step.status === 'done' ? 'text-gray-400' : 'text-[#1F1F1F]']">{{ step.title }}</span>
                                     </div>
+                                    <span v-if="step.completed_at" class="text-xs text-gray-400">{{ formatDate(step.completed_at) }}</span>
+                                    <span v-else-if="step.status === 'done' && step.updated_at" class="text-xs text-gray-400">{{ formatDate(step.updated_at) }}</span>
                                 </div>
                             </div>
 
-                            <div v-if="!selectedPhase.steps?.length" class="text-center py-8 text-gray-500 text-sm">No steps defined yet.</div>
+                            <div v-if="selectedPhase.steps?.length > 3" class="mt-3 text-center">
+                                <span class="text-xs text-gray-400">+ {{ selectedPhase.steps.length - 3 }} more steps</span>
+                            </div>
+
+                            <div v-if="!selectedPhase.steps?.length" class="text-center py-6 text-gray-400 text-sm">No steps defined yet.</div>
                         </div>
                     </div>
 
