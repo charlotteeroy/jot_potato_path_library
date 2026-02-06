@@ -299,12 +299,12 @@
                         </div>
                         <div class="text-left sm:text-right flex-shrink-0">
                             <!-- Progress Ring -->
-                            <div class="relative inline-flex items-center justify-center">
-                                <svg class="w-20 h-20 md:w-24 md:h-24 transform -rotate-90">
-                                    <circle cx="40" cy="40" r="36" stroke="#F3F4F6" stroke-width="6" fill="none" class="md:cx-48 md:cy-48 md:r-42"/>
-                                    <circle cx="40" cy="40" r="36" :stroke="selectedPath.progress_percentage >= 100 ? '#10B981' : '#8B5CF6'" stroke-width="6" fill="none"
-                                        :stroke-dasharray="226"
-                                        :stroke-dashoffset="226 - (226 * selectedPath.progress_percentage / 100)"
+                            <div class="relative inline-flex items-center justify-center w-20 h-20 md:w-24 md:h-24">
+                                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 80 80">
+                                    <circle cx="40" cy="40" r="34" stroke="#F3F4F6" stroke-width="6" fill="none"/>
+                                    <circle cx="40" cy="40" r="34" :stroke="selectedPath.progress_percentage >= 100 ? '#10B981' : '#8B5CF6'" stroke-width="6" fill="none"
+                                        :stroke-dasharray="214"
+                                        :stroke-dashoffset="214 - (214 * selectedPath.progress_percentage / 100)"
                                         stroke-linecap="round" class="transition-all duration-500"/>
                                 </svg>
                                 <div class="absolute inset-0 flex flex-col items-center justify-center">
