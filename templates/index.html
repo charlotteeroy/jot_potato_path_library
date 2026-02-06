@@ -1030,38 +1030,35 @@
                         </div>
 
                         <!-- Action Items Section -->
-                        <div class="border-t border-gray-100 pt-5">
-                            <div class="flex items-center gap-2 mb-4">
-                                <svg class="w-4 h-4 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-                                <span class="font-semibold text-gray-900">Action items</span>
-                                <span class="text-sm text-gray-500">{{ selectedStep.action_items_completed || countCompletedActions(selectedStep) }}/{{ selectedStep.action_items?.length || 0 }} completed</span>
-                            </div>
-
-                            <!-- Action Items Grid -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                <div v-for="item in selectedStep.action_items" :key="item.id"
-                                    @click="openActionModal(item, selectedStep, selectedStepParentPhase)"
-                                    class="p-4 bg-white border border-gray-200 rounded-xl hover:border-gray-300 hover:shadow-sm cursor-pointer transition">
-                                    <div class="flex items-start gap-3">
-                                        <div :class="['w-5 h-5 rounded-full border-2 flex items-center justify-center flex-shrink-0 mt-0.5', item.status === 'done' ? 'bg-green-500 border-green-500 text-white' : 'border-gray-300']">
-                                            <svg v-if="item.status === 'done'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
-                                        </div>
-                                        <div class="flex-1 min-w-0">
-                                            <h4 :class="['font-medium text-sm', item.status === 'done' ? 'text-gray-400 line-through' : 'text-gray-900']">{{ item.title }}</h4>
-                                            <div class="flex flex-wrap items-center gap-2 mt-2">
-                                                <span :class="actionItemStatusBadgeClass(item)" class="text-xs">{{ formatActionItemStatus(item) }}</span>
-                                                <span v-if="item.due_date" class="flex items-center gap-1 text-xs text-gray-500">
-                                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                                    {{ formatDate(item.due_date) }}
-                                                </span>
-                                                <div v-if="item.assignee_name" class="w-6 h-6 rounded-full bg-gradient-to-br from-orange-400 to-pink-500 flex items-center justify-center text-white text-xs ml-auto">{{ item.assignee_name.charAt(0) }}</div>
-                                            </div>
-                                        </div>
-                                    </div>
+                        <div class="border-t border-gray-100/50 pt-5">
+                            <div class="flex items-center justify-between mb-4">
+                                <div class="flex items-center gap-2">
+                                    <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                                    <span class="font-semibold text-[#1F1F1F]">Action items</span>
+                                    <span class="text-sm text-gray-500">{{ selectedStep.action_items_completed || countCompletedActions(selectedStep) }}/{{ selectedStep.action_items?.length || 0 }} completed</span>
                                 </div>
                             </div>
 
-                            <div v-if="!selectedStep.action_items?.length" class="text-center py-8 text-gray-500 text-sm">No action items in this step.</div>
+                            <!-- Simple Action Items List (max 3) -->
+                            <div class="space-y-2">
+                                <div v-for="item in selectedStep.action_items?.slice(0, 3)" :key="item.id"
+                                    class="flex items-center justify-between py-2 px-3 bg-gray-50/70 rounded-xl">
+                                    <div class="flex items-center gap-3">
+                                        <div :class="['w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0', item.status === 'done' ? 'bg-emerald-500 text-white' : 'bg-gray-200']">
+                                            <svg v-if="item.status === 'done'" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>
+                                        </div>
+                                        <span :class="['text-sm', item.status === 'done' ? 'text-gray-400' : 'text-[#1F1F1F]']">{{ item.title }}</span>
+                                    </div>
+                                    <span v-if="item.completed_at" class="text-xs text-gray-400">{{ formatDate(item.completed_at) }}</span>
+                                    <span v-else-if="item.status === 'done' && item.updated_at" class="text-xs text-gray-400">{{ formatDate(item.updated_at) }}</span>
+                                </div>
+                            </div>
+
+                            <div v-if="selectedStep.action_items?.length > 3" class="mt-3 text-center">
+                                <span class="text-xs text-gray-400">+ {{ selectedStep.action_items.length - 3 }} more items</span>
+                            </div>
+
+                            <div v-if="!selectedStep.action_items?.length" class="text-center py-6 text-gray-400 text-sm">No action items in this step.</div>
                         </div>
                     </div>
                 </div>
