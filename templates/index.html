@@ -18,13 +18,19 @@
                     },
                     colors: {
                         'brand': {
-                            DEFAULT: '#1F2937',
-                            50: '#F3F4F6',
-                            100: '#E5E7EB',
-                            200: '#D1D5DB',
-                            500: '#1F2937',
-                            600: '#1a2332',
-                            700: '#151c29',
+                            DEFAULT: '#8B5CF6',
+                            50: '#F5F3FF',
+                            100: '#EDE9FE',
+                            200: '#DDD6FE',
+                            300: '#C4B5FD',
+                            400: '#A78BFA',
+                            500: '#8B5CF6',
+                            600: '#7C3AED',
+                            700: '#6D28D9',
+                        },
+                        'warm': {
+                            bg: '#FAFAF8',
+                            card: '#FFFFFF',
                         }
                     }
                 },
@@ -42,21 +48,47 @@
         body {
             font-family: 'Poppins', sans-serif;
         }
+        /* Glass morphism effect */
+        .glass {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .glass-dark {
+            background: rgba(28, 28, 28, 0.95);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        /* Subtle hover elevation */
+        .hover-lift {
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        /* Soft shadow for cards */
+        .shadow-soft {
+            box-shadow: 0 2px 15px -3px rgba(0, 0, 0, 0.07), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+        }
+        .shadow-soft-lg {
+            box-shadow: 0 4px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 10px -5px rgba(0, 0, 0, 0.04);
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen font-sans">
+<body class="bg-[#FAFAF8] min-h-screen font-sans">
 {% verbatim %}
     <div id="app" v-cloak class="flex min-h-screen">
         <!-- Sidebar - Hidden on mobile -->
-        <aside class="hidden md:flex fixed left-0 top-0 h-full w-16 bg-gray-800 flex-col items-center py-4 z-50">
+        <aside class="hidden md:flex fixed left-0 top-0 h-full w-16 bg-[#1C1C1C] glass-dark flex-col items-center py-4 z-50">
             <!-- App Label -->
-            <div class="text-xs text-gray-400 mb-4 tracking-wide">Path library</div>
+            <div class="text-xs text-gray-500 mb-4 tracking-wide font-medium">Path library</div>
 
             <!-- Main Navigation -->
             <nav class="flex flex-col items-center gap-2 flex-1">
                 <!-- Potato (Home/Paths) - Active -->
-                <button class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition" title="Paths Library">
-                    <svg class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                <button class="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center hover:bg-brand-500/30 transition border border-brand-500/30" title="Paths Library">
+                    <svg class="w-6 h-6 text-brand-400" viewBox="0 0 24 24" fill="currentColor">
                         <ellipse cx="12" cy="13" rx="8" ry="9" fill="currentColor" opacity="0.3"/>
                         <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
                         <circle cx="9" cy="10" r="1" fill="white"/>
@@ -66,21 +98,21 @@
                 </button>
 
                 <!-- Analytics -->
-                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Analytics">
+                <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition text-gray-500 hover:text-white" title="Analytics">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                     </svg>
                 </button>
 
                 <!-- Sync/Refresh -->
-                <button @click="fetchPaths" class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Refresh">
+                <button @click="fetchPaths" class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition text-gray-500 hover:text-white" title="Refresh">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
                 </button>
 
                 <!-- Messages -->
-                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Messages">
+                <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition text-gray-500 hover:text-white" title="Messages">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
                     </svg>
@@ -90,7 +122,7 @@
             <!-- Bottom Navigation -->
             <div class="flex flex-col items-center gap-2 mt-auto">
                 <!-- Notifications -->
-                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-gray-700 transition text-gray-400 hover:text-white" title="Notifications">
+                <button class="w-10 h-10 rounded-full flex items-center justify-center hover:bg-white/10 transition text-gray-500 hover:text-white" title="Notifications">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
@@ -101,18 +133,18 @@
         <!-- Main Content Area -->
         <div class="flex-1 md:ml-16">
             <!-- Top Navigation Bar -->
-            <header class="bg-white border-b border-gray-200 sticky top-0 z-40">
+            <header class="bg-white/80 glass sticky top-0 z-40 shadow-soft">
                 <div class="px-4 md:px-6 py-3 flex items-center justify-between">
                     <div class="flex items-center gap-2 md:gap-3">
                         <!-- Mobile Menu Button -->
-                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden w-8 h-8 rounded-lg flex items-center justify-center hover:bg-gray-100">
+                        <button @click="mobileMenuOpen = !mobileMenuOpen" class="md:hidden w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition">
                             <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
                             </svg>
                         </button>
                         <!-- Potato Icon -->
-                        <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-                            <svg class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                        <div class="w-8 h-8 rounded-full bg-brand-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-brand-500" viewBox="0 0 24 24" fill="currentColor">
                                 <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
                                 <circle cx="9" cy="10" r="1" fill="white"/>
                                 <circle cx="14" cy="9" r="0.8" fill="white"/>
@@ -121,9 +153,9 @@
                         </div>
                         <!-- Breadcrumb -->
                         <nav class="flex items-center text-sm">
-                            <span class="hidden sm:inline text-gray-900 font-medium">Work Area</span>
-                            <span class="hidden sm:inline mx-2 text-gray-400">»</span>
-                            <button class="flex items-center gap-1 text-gray-900 font-medium hover:text-gray-600">
+                            <span class="hidden sm:inline text-gray-500 font-medium">Work Area</span>
+                            <span class="hidden sm:inline mx-2 text-gray-300">»</span>
+                            <button class="flex items-center gap-1 text-[#1F1F1F] font-medium hover:text-brand-500 transition">
                                 Paths Library
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
@@ -135,24 +167,24 @@
             </header>
 
             <!-- Mobile Menu Dropdown -->
-            <div v-if="mobileMenuOpen" class="md:hidden bg-gray-800 border-b border-gray-700">
+            <div v-if="mobileMenuOpen" class="md:hidden bg-[#1C1C1C] glass-dark">
                 <div class="flex items-center justify-around py-3">
-                    <button class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center">
-                        <svg class="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                    <button class="w-10 h-10 rounded-full bg-brand-500/20 flex items-center justify-center border border-brand-500/30">
+                        <svg class="w-5 h-5 text-brand-400" viewBox="0 0 24 24" fill="currentColor">
                             <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
                         </svg>
                     </button>
-                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                    <button class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
                         </svg>
                     </button>
-                    <button @click="fetchPaths" class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                    <button @click="fetchPaths" class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                         </svg>
                     </button>
-                    <button class="w-10 h-10 rounded-xl flex items-center justify-center text-gray-400">
+                    <button class="w-10 h-10 rounded-full flex items-center justify-center text-gray-500 hover:text-white hover:bg-white/10 transition">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                         </svg>
@@ -163,37 +195,41 @@
             <main class="px-4 md:px-6 py-4 md:py-6">
             <!-- Stats -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
-                    <div class="text-2xl font-bold text-gray-900">{{ stats.total }}</div>
+                <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                    <div class="text-2xl font-bold text-[#1F1F1F]">{{ stats.total }}</div>
                     <div class="text-sm text-gray-500">Total Paths</div>
                 </div>
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-green-100">
-                    <div class="text-2xl font-bold text-green-600">{{ stats.active }}</div>
+                <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                    <div class="text-2xl font-bold text-emerald-500">{{ stats.active }}</div>
                     <div class="text-sm text-gray-500">Active</div>
                 </div>
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-yellow-100">
-                    <div class="text-2xl font-bold text-yellow-600">{{ stats.on_hold }}</div>
+                <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                    <div class="text-2xl font-bold text-amber-500">{{ stats.on_hold }}</div>
                     <div class="text-sm text-gray-500">On Hold</div>
                 </div>
-                <div class="bg-white rounded-xl p-4 shadow-sm border border-blue-100">
-                    <div class="text-2xl font-bold text-blue-600">{{ stats.completed }}</div>
+                <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                    <div class="text-2xl font-bold text-brand-500">{{ stats.completed }}</div>
                     <div class="text-sm text-gray-500">Completed</div>
                 </div>
             </div>
 
             <!-- Search and Filters -->
-            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100 mb-6">
+            <div class="bg-white rounded-2xl p-5 shadow-soft mb-6">
                 <div class="mb-4">
                     <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                        <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                            </svg>
+                        </span>
                         <input
                             v-model="searchQuery"
                             @input="debouncedSearch"
                             type="text"
                             placeholder="Search paths..."
-                            class="w-full pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                            class="w-full pl-12 pr-4 py-3 bg-gray-50 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white transition"
                         />
-                        <button v-if="searchQuery" @click="clearSearch" class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">✕</button>
+                        <button v-if="searchQuery" @click="clearSearch" class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition">✕</button>
                     </div>
                 </div>
                 <div class="flex flex-wrap gap-2">
@@ -202,8 +238,8 @@
                         :key="filter.value"
                         @click="currentFilter = filter.value"
                         :class="[
-                            'px-4 py-2 rounded-lg text-sm font-medium transition',
-                            currentFilter === filter.value ? 'bg-brand-500 text-white' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                            'px-4 py-2 rounded-full text-sm font-medium transition',
+                            currentFilter === filter.value ? 'bg-brand-500 text-white shadow-md' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                         ]"
                     >{{ filter.label }}</button>
                 </div>
@@ -215,18 +251,18 @@
                     v-for="path in filteredPaths"
                     :key="path.id"
                     @click="selectPath(path.id)"
-                    class="bg-white rounded-xl p-5 shadow-sm border border-gray-100 hover:shadow-md hover:border-brand-200 cursor-pointer transition"
+                    class="bg-white rounded-2xl p-6 shadow-soft hover-lift cursor-pointer transition"
                 >
-                    <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ path.title }}</h3>
+                    <h3 class="text-lg font-semibold text-[#1F1F1F] mb-1">{{ path.title }}</h3>
                     <p v-if="path.project_summary" class="text-gray-500 mb-4 line-clamp-2">{{ path.project_summary }}</p>
                     <p v-else class="text-gray-400 mb-4 line-clamp-2">No description</p>
 
-                    <div class="flex items-center text-sm text-gray-500">
+                    <div class="flex flex-wrap items-center gap-2 text-sm text-gray-500">
                         <span :class="statusBadgeClass(path.status)">{{ formatStatus(path.status) }}</span>
-                        <span class="mx-3 text-gray-300">|</span>
+                        <span class="text-gray-300">·</span>
                         <span v-if="path.duration_days">{{ path.duration_days }} days</span>
                         <span v-else>—</span>
-                        <span class="mx-3 text-gray-300">|</span>
+                        <span class="text-gray-300">·</span>
                         <span v-if="path.status === 'completed' && path.completed_at">{{ formatRelativeTime(path.completed_at) }}</span>
                         <span v-else-if="path.status === 'on_hold' && path.paused_at">{{ formatRelativeTime(path.paused_at) }}</span>
                         <span v-else>{{ formatRelativeTime(path.updated_at) }}</span>
@@ -236,76 +272,133 @@
             </div>
 
             <!-- Path Detail View -->
-            <div v-if="selectedPath" class="bg-white rounded-xl shadow-sm border border-gray-100">
+            <div v-if="selectedPath" class="bg-white rounded-2xl shadow-soft-lg">
                 <!-- Back Button -->
-                <div class="p-4 border-b border-gray-100 flex items-center justify-between">
-                    <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-600 hover:text-gray-900">← Back to Path Library</button>
+                <div class="p-4 border-b border-gray-100/50 flex items-center justify-between">
+                    <button @click="selectedPath = null" class="flex items-center gap-2 text-gray-500 hover:text-brand-500 transition font-medium">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                        </svg>
+                        Back to Path Library
+                    </button>
                     <div class="flex items-center gap-3">
-                        <button v-if="selectedPath.status === 'on_hold'" @click="updatePathStatus('active')" class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition text-sm font-medium">Reopen this path</button>
+                        <button v-if="selectedPath.status === 'on_hold'" @click="updatePathStatus('active')" class="px-4 py-2 bg-emerald-500 text-white rounded-full hover:bg-emerald-600 transition text-sm font-medium shadow-md">Reopen this path</button>
                     </div>
                 </div>
 
                 <!-- Path Header -->
-                <div class="p-4 md:p-6 border-b border-gray-100">
+                <div class="p-4 md:p-8 border-b border-gray-100/50">
                     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                         <div class="flex-1 min-w-0">
-                            <div class="flex flex-wrap items-center gap-2 mb-2">
+                            <div class="flex flex-wrap items-center gap-2 mb-3">
                                 <span :class="statusBadgeClass(selectedPath.status)">{{ formatStatus(selectedPath.status) }}</span>
                                 <span :class="priorityBadgeClass(selectedPath.priority)">{{ selectedPath.priority }}</span>
                             </div>
-                            <h2 class="text-xl md:text-2xl font-bold text-gray-900">{{ selectedPath.title }}</h2>
-                            <p class="text-gray-600 mt-2 text-sm md:text-base" v-if="selectedPath.goal_statement">{{ selectedPath.goal_statement }}</p>
+                            <h2 class="text-xl md:text-2xl font-bold text-[#1F1F1F]">{{ selectedPath.title }}</h2>
+                            <p class="text-gray-500 mt-2 text-sm md:text-base" v-if="selectedPath.goal_statement">{{ selectedPath.goal_statement }}</p>
                         </div>
                         <div class="text-left sm:text-right flex-shrink-0">
-                            <div class="text-3xl md:text-4xl font-bold text-brand-500">{{ selectedPath.progress_percentage }}%</div>
-                            <div class="text-sm text-gray-500">complete</div>
+                            <!-- Progress Ring -->
+                            <div class="relative inline-flex items-center justify-center">
+                                <svg class="w-20 h-20 md:w-24 md:h-24 transform -rotate-90">
+                                    <circle cx="40" cy="40" r="36" stroke="#F3F4F6" stroke-width="6" fill="none" class="md:cx-48 md:cy-48 md:r-42"/>
+                                    <circle cx="40" cy="40" r="36" :stroke="selectedPath.progress_percentage >= 100 ? '#10B981' : '#8B5CF6'" stroke-width="6" fill="none"
+                                        :stroke-dasharray="226"
+                                        :stroke-dashoffset="226 - (226 * selectedPath.progress_percentage / 100)"
+                                        stroke-linecap="round" class="transition-all duration-500"/>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span class="text-xl md:text-2xl font-bold text-[#1F1F1F]">{{ selectedPath.progress_percentage }}%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <!-- Metadata Row -->
-                    <div class="flex flex-wrap items-center gap-4 md:gap-6 mt-4 pt-4 border-t border-gray-100 text-sm">
-                        <div v-if="selectedPath.status === 'on_hold' && selectedPath.paused_at" class="flex items-center gap-2">
-                            <span class="text-gray-400">📅</span>
-                            <div><div class="text-xs text-gray-400">Paused On</div><div class="font-medium text-gray-900">{{ formatDateLong(selectedPath.paused_at) }}</div></div>
+                    <div class="flex flex-wrap items-center gap-6 md:gap-8 mt-6 pt-6 border-t border-gray-100/50 text-sm">
+                        <div v-if="selectedPath.status === 'on_hold' && selectedPath.paused_at" class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                            </div>
+                            <div><div class="text-xs text-gray-400 font-medium">Paused On</div><div class="font-medium text-[#1F1F1F]">{{ formatDateLong(selectedPath.paused_at) }}</div></div>
                         </div>
-                        <div v-if="selectedPath.status === 'completed' && selectedPath.completed_at" class="flex items-center gap-2">
-                            <span class="text-gray-400">📅</span>
-                            <div><div class="text-xs text-gray-400">Completed On</div><div class="font-medium text-gray-900">{{ formatDateLong(selectedPath.completed_at) }}</div></div>
+                        <div v-if="selectedPath.status === 'completed' && selectedPath.completed_at" class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div><div class="text-xs text-gray-400 font-medium">Completed On</div><div class="font-medium text-[#1F1F1F]">{{ formatDateLong(selectedPath.completed_at) }}</div></div>
                         </div>
-                        <div v-if="selectedPath.duration_days" class="flex items-center gap-2">
-                            <span class="text-gray-400">⏱</span>
-                            <div><div class="text-xs text-gray-400">Duration</div><div class="font-medium text-gray-900">{{ selectedPath.duration_days }} days</div></div>
+                        <div v-if="selectedPath.duration_days" class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-brand-50 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                </svg>
+                            </div>
+                            <div><div class="text-xs text-gray-400 font-medium">Duration</div><div class="font-medium text-[#1F1F1F]">{{ selectedPath.duration_days }} days</div></div>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <span class="text-gray-400">👥</span>
-                            <div><div class="text-xs text-gray-400">Team Size</div><div class="font-medium text-gray-900">{{ selectedPath.team_size || 1 }} members</div></div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                                <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
+                                </svg>
+                            </div>
+                            <div><div class="text-xs text-gray-400 font-medium">Team Size</div><div class="font-medium text-[#1F1F1F]">{{ selectedPath.team_size || 1 }} members</div></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Project Summary Section -->
-                <div v-if="selectedPath.project_summary || selectedPath.status === 'on_hold' || selectedPath.status === 'completed'" class="p-4 md:p-6 border-b border-gray-100">
+                <div v-if="selectedPath.project_summary || selectedPath.status === 'on_hold' || selectedPath.status === 'completed'" class="p-4 md:p-8 border-b border-gray-100/50">
                     <div class="flex items-center justify-between cursor-pointer" @click="summaryExpanded = !summaryExpanded">
-                        <h3 class="font-semibold text-gray-900">Project Summary</h3>
-                        <span class="text-gray-400">{{ summaryExpanded ? '▼' : '▶' }}</span>
+                        <h3 class="font-semibold text-[#1F1F1F]">Project Summary</h3>
+                        <span class="text-gray-400 transition-transform" :class="summaryExpanded ? 'rotate-180' : ''">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </span>
                     </div>
                     <div v-show="summaryExpanded" class="mt-4 space-y-4">
                         <p v-if="selectedPath.project_summary" class="text-gray-600">{{ selectedPath.project_summary }}</p>
 
                         <!-- On Hold Info -->
                         <div v-if="selectedPath.status === 'on_hold'" class="space-y-4">
-                            <div v-if="selectedPath.on_hold_reason" class="bg-yellow-50 rounded-lg p-4 border border-yellow-100">
-                                <div class="flex items-center gap-2 mb-2"><span class="text-yellow-500">💡</span><h4 class="font-semibold text-gray-900">Why it's on hold</h4></div>
-                                <p class="text-gray-700">{{ selectedPath.on_hold_reason }}</p>
+                            <div v-if="selectedPath.on_hold_reason" class="bg-amber-50/50 rounded-2xl p-5">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-[#1F1F1F]">Why it's on hold</h4>
+                                </div>
+                                <p class="text-gray-600 pl-8">{{ selectedPath.on_hold_reason }}</p>
                             </div>
                             <div class="grid md:grid-cols-2 gap-4">
-                                <div v-if="selectedPath.what_was_started" class="bg-green-50 rounded-lg p-4 border border-green-100">
-                                    <div class="flex items-center gap-2 mb-2"><span class="text-green-500">✓</span><h4 class="font-semibold text-gray-900">What you started to solve</h4></div>
-                                    <p class="text-gray-700">{{ selectedPath.what_was_started }}</p>
+                                <div v-if="selectedPath.what_was_started" class="bg-emerald-50/50 rounded-2xl p-5">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="font-semibold text-[#1F1F1F]">What you started to solve</h4>
+                                    </div>
+                                    <p class="text-gray-600 pl-8">{{ selectedPath.what_was_started }}</p>
                                 </div>
-                                <div v-if="selectedPath.on_hold_issues_faced" class="bg-red-50 rounded-lg p-4 border border-red-100">
-                                    <div class="flex items-center gap-2 mb-2"><span class="text-red-500">⚠</span><h4 class="font-semibold text-gray-900">Issues you faced</h4></div>
-                                    <p class="text-gray-700">{{ selectedPath.on_hold_issues_faced }}</p>
+                                <div v-if="selectedPath.on_hold_issues_faced" class="bg-red-50/50 rounded-2xl p-5">
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                            <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="font-semibold text-[#1F1F1F]">Issues you faced</h4>
+                                    </div>
+                                    <p class="text-gray-600 pl-8">{{ selectedPath.on_hold_issues_faced }}</p>
                                 </div>
                             </div>
                         </div>
@@ -313,72 +406,121 @@
                         <!-- Completed Info -->
                         <div v-if="selectedPath.status === 'completed'" class="space-y-4">
                             <div class="grid md:grid-cols-2 gap-4">
-                                <div v-if="selectedPath.what_was_solved?.length" class="bg-green-50 rounded-lg p-4 border border-green-100">
-                                    <div class="flex items-center gap-2 mb-2"><span class="text-green-500">✓</span><h4 class="font-semibold text-gray-900">What you solved</h4></div>
-                                    <ul class="space-y-1"><li v-for="item in selectedPath.what_was_solved" class="text-gray-700 flex items-start gap-2"><span class="text-green-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                                <div v-if="selectedPath.what_was_solved?.length" class="bg-emerald-50/50 rounded-2xl p-5">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                                            <svg class="w-3.5 h-3.5 text-emerald-600" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="font-semibold text-[#1F1F1F]">What you solved</h4>
+                                    </div>
+                                    <ul class="space-y-2 pl-8"><li v-for="item in selectedPath.what_was_solved" class="text-gray-600 flex items-start gap-2"><span class="text-emerald-400 mt-1">•</span><span>{{ item }}</span></li></ul>
                                 </div>
-                                <div v-if="selectedPath.completed_issues_faced?.length" class="bg-red-50 rounded-lg p-4 border border-red-100">
-                                    <div class="flex items-center gap-2 mb-2"><span class="text-red-500">⚠</span><h4 class="font-semibold text-gray-900">Issues you faced</h4></div>
-                                    <ul class="space-y-1"><li v-for="item in selectedPath.completed_issues_faced" class="text-gray-700 flex items-start gap-2"><span class="text-red-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                                <div v-if="selectedPath.completed_issues_faced?.length" class="bg-red-50/50 rounded-2xl p-5">
+                                    <div class="flex items-center gap-2 mb-3">
+                                        <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                            <svg class="w-3.5 h-3.5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                            </svg>
+                                        </div>
+                                        <h4 class="font-semibold text-[#1F1F1F]">Issues you faced</h4>
+                                    </div>
+                                    <ul class="space-y-2 pl-8"><li v-for="item in selectedPath.completed_issues_faced" class="text-gray-600 flex items-start gap-2"><span class="text-red-400 mt-1">•</span><span>{{ item }}</span></li></ul>
                                 </div>
                             </div>
-                            <div v-if="selectedPath.key_learnings?.length" class="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                                <div class="flex items-center gap-2 mb-2"><span class="text-purple-500">💡</span><h4 class="font-semibold text-gray-900">Key Learnings & Insights</h4></div>
-                                <ul class="space-y-1"><li v-for="item in selectedPath.key_learnings" class="text-gray-700 flex items-start gap-2"><span class="text-purple-400 mt-1">•</span><span>{{ item }}</span></li></ul>
+                            <div v-if="selectedPath.key_learnings?.length" class="bg-brand-50/50 rounded-2xl p-5">
+                                <div class="flex items-center gap-2 mb-3">
+                                    <div class="w-6 h-6 rounded-full bg-brand-100 flex items-center justify-center">
+                                        <svg class="w-3.5 h-3.5 text-brand-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                        </svg>
+                                    </div>
+                                    <h4 class="font-semibold text-[#1F1F1F]">Key Learnings & Insights</h4>
+                                </div>
+                                <ul class="space-y-2 pl-8"><li v-for="item in selectedPath.key_learnings" class="text-gray-600 flex items-start gap-2"><span class="text-brand-400 mt-1">•</span><span>{{ item }}</span></li></ul>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Path Journey (Issue -> Root Cause -> Initiative) -->
-                <div class="p-4 md:p-6 border-b border-gray-100 bg-gray-50">
-                    <h3 class="font-semibold text-gray-900 mb-4">Path Journey</h3>
+                <div class="p-4 md:p-8 border-b border-gray-100/50 bg-gray-50/50">
+                    <h3 class="font-semibold text-[#1F1F1F] mb-4">Path Journey</h3>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
-                        <div class="bg-white rounded-lg p-4 border border-red-100">
-                            <div class="text-xs font-medium text-red-600 mb-1">📋 ISSUE</div>
-                            <div class="font-semibold text-gray-900">{{ selectedPath.issue?.title }}</div>
+                        <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-red-100 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-red-500 uppercase tracking-wide">Issue</span>
+                            </div>
+                            <div class="font-semibold text-[#1F1F1F]">{{ selectedPath.issue?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.issue?.description }}</div>
                         </div>
-                        <div class="bg-white rounded-lg p-4 border border-yellow-100">
-                            <div class="text-xs font-medium text-yellow-600 mb-1">🔍 ROOT CAUSE</div>
-                            <div class="font-semibold text-gray-900">{{ selectedPath.root_cause?.title }}</div>
+                        <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-amber-100 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-amber-500 uppercase tracking-wide">Root Cause</span>
+                            </div>
+                            <div class="font-semibold text-[#1F1F1F]">{{ selectedPath.root_cause?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.root_cause?.description }}</div>
                         </div>
-                        <div class="bg-white rounded-lg p-4 border border-green-100">
-                            <div class="text-xs font-medium text-green-600 mb-1">💡 INITIATIVE</div>
-                            <div class="font-semibold text-gray-900">{{ selectedPath.initiative?.title }}</div>
+                        <div class="bg-white rounded-2xl p-5 shadow-soft hover-lift">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-6 h-6 rounded-full bg-emerald-100 flex items-center justify-center">
+                                    <svg class="w-3.5 h-3.5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs font-semibold text-emerald-500 uppercase tracking-wide">Initiative</span>
+                            </div>
+                            <div class="font-semibold text-[#1F1F1F]">{{ selectedPath.initiative?.title }}</div>
                             <div class="text-sm text-gray-500 mt-1">{{ selectedPath.initiative?.description }}</div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Implementation Plan Summary (Clickable) -->
-                <div class="p-4 md:p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="font-semibold text-gray-900">Implementation Plan</h3>
-                        <button @click="showImplementationModal = true" class="text-sm text-brand-500 hover:text-brand-600 font-medium">View Full Plan →</button>
+                <div class="p-4 md:p-8">
+                    <div class="flex items-center justify-between mb-5">
+                        <h3 class="font-semibold text-[#1F1F1F]">Implementation Plan</h3>
+                        <button @click="showImplementationModal = true" class="text-sm text-brand-500 hover:text-brand-600 font-medium flex items-center gap-1 transition">
+                            View Full Plan
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                        </button>
                     </div>
 
                     <!-- Compact Phase Overview -->
-                    <div class="space-y-2 md:space-y-3">
+                    <div class="space-y-3">
                         <div v-for="phase in selectedPath.phases" :key="phase.id"
                             @click="openPhaseModal(phase)"
-                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 md:p-4 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer transition gap-2 sm:gap-4">
+                            class="flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 md:p-5 bg-gray-50/70 rounded-2xl hover:bg-gray-100/70 cursor-pointer transition gap-2 sm:gap-4">
                             <div class="flex flex-wrap items-center gap-2 md:gap-3">
                                 <span :class="phaseStatusClass(phase.status)">{{ formatStatus(phase.status) }}</span>
-                                <span class="font-medium text-gray-900 text-sm md:text-base">{{ phase.title }}</span>
-                                <span class="text-xs md:text-sm text-gray-500">({{ phase.steps?.length || 0 }} steps)</span>
+                                <span class="font-medium text-[#1F1F1F] text-sm md:text-base">{{ phase.title }}</span>
+                                <span class="text-xs md:text-sm text-gray-400">({{ phase.steps?.length || 0 }} steps)</span>
                             </div>
                             <div class="flex items-center gap-3 md:gap-4 text-xs md:text-sm">
                                 <span v-if="phase.assignee_name" class="text-gray-500 hidden sm:inline">{{ phase.assignee_name }}</span>
                                 <div class="flex items-center gap-2">
-                                    <div class="w-16 md:w-20 bg-gray-200 rounded-full h-1.5 md:h-2">
-                                        <div class="bg-brand-500 h-1.5 md:h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
+                                    <div class="w-16 md:w-24 bg-gray-200 rounded-full h-1.5 md:h-2">
+                                        <div class="bg-brand-500 h-1.5 md:h-2 rounded-full transition-all" :style="{ width: phase.progress + '%' }"></div>
                                     </div>
-                                    <span class="text-gray-600 w-8 md:w-10">{{ phase.progress }}%</span>
+                                    <span class="text-gray-600 w-8 md:w-10 font-medium">{{ phase.progress }}%</span>
                                 </div>
-                                <span v-if="phase.due_date" class="text-gray-500 hidden md:inline">{{ formatDate(phase.due_date) }}</span>
-                                <span class="text-gray-400">›</span>
+                                <span v-if="phase.due_date" class="text-gray-400 hidden md:inline">{{ formatDate(phase.due_date) }}</span>
+                                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                                </svg>
                             </div>
                         </div>
                         <div v-if="!selectedPath.phases?.length" class="text-center py-8 text-gray-500">No implementation plan yet.</div>
@@ -390,7 +532,7 @@
             <div v-if="selectedPath" class="fixed bottom-6 right-6 z-[55]" @mouseenter="showAIAgent = true" @mouseleave="handleAIMouseLeave">
                 <!-- Bubble Button -->
                 <button
-                    class="w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all hover:scale-105 bg-violet-600 hover:bg-violet-700"
+                    class="w-14 h-14 rounded-full flex items-center justify-center shadow-soft-lg transition-all hover:scale-110 bg-gradient-to-br from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700"
                 >
                     <svg class="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
@@ -400,69 +542,69 @@
                 </button>
 
                 <!-- Chat Popup Box -->
-                <div v-if="showAIAgent" class="absolute bottom-16 right-0 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[400px] bg-white rounded-2xl shadow-2xl border border-gray-200 overflow-hidden">
+                <div v-if="showAIAgent" class="absolute bottom-18 right-0 w-[calc(100vw-2rem)] sm:w-80 md:w-96 max-w-[400px] bg-white/95 glass rounded-2xl shadow-soft-lg overflow-hidden">
                     <!-- Header -->
-                    <div class="p-4 border-b border-gray-100">
+                    <div class="p-4 border-b border-gray-100/50 bg-gradient-to-r from-brand-50 to-white">
                         <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-full bg-violet-100 flex items-center justify-center flex-shrink-0">
-                                <svg class="w-5 h-5 text-violet-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <div class="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center flex-shrink-0 shadow-md">
+                                <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                     <path d="M12 3l1.5 3.5L17 8l-3.5 1.5L12 13l-1.5-3.5L7 8l3.5-1.5L12 3z"/>
                                     <path d="M5 16l1 2 2 1-2 1-1 2-1-2-2-1 2-1 1-2z"/>
                                 </svg>
                             </div>
                             <div class="min-w-0">
-                                <h3 class="font-semibold text-gray-900">AI Project Assistant</h3>
+                                <h3 class="font-semibold text-[#1F1F1F]">AI Project Assistant</h3>
                                 <p class="text-sm text-gray-500 truncate">Ask questions about this project</p>
                             </div>
                         </div>
                     </div>
 
                     <!-- Chat Messages -->
-                    <div class="h-56 sm:h-64 overflow-y-auto p-4 bg-gray-50" ref="chatContainer">
+                    <div class="h-56 sm:h-64 overflow-y-auto p-4 bg-[#FAFAF8]" ref="chatContainer">
                         <!-- Welcome/Initial Message -->
                         <div v-if="aiMessages.length === 0" class="flex justify-start">
-                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] shadow-sm">
-                                <p class="text-sm text-gray-700">I'm analyzing the "{{ selectedPath.title }}" project. I can help you understand project insights, suggest improvements, or answer questions about this specific project.</p>
+                            <div class="bg-white rounded-2xl rounded-bl-md px-4 py-3 max-w-[90%] shadow-soft">
+                                <p class="text-sm text-gray-600">I'm analyzing the "{{ selectedPath.title }}" project. I can help you understand project insights, suggest improvements, or answer questions about this specific project.</p>
                                 <p class="text-xs text-gray-400 mt-2">{{ formatTime(new Date()) }}</p>
                             </div>
                         </div>
 
                         <!-- Messages -->
                         <div v-for="(msg, index) in aiMessages" :key="index" :class="['flex mb-3', msg.role === 'user' ? 'justify-end' : 'justify-start']">
-                            <div :class="['max-w-[90%] rounded-2xl px-4 py-3', msg.role === 'user' ? 'bg-violet-600 text-white rounded-br-md' : 'bg-white border border-gray-200 text-gray-700 rounded-bl-md shadow-sm']">
+                            <div :class="['max-w-[90%] rounded-2xl px-4 py-3', msg.role === 'user' ? 'bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-br-md shadow-md' : 'bg-white text-gray-600 rounded-bl-md shadow-soft']">
                                 <p class="text-sm whitespace-pre-wrap">{{ msg.content }}</p>
-                                <p :class="['text-xs mt-2', msg.role === 'user' ? 'text-violet-200' : 'text-gray-400']">{{ formatTime(msg.timestamp) }}</p>
+                                <p :class="['text-xs mt-2', msg.role === 'user' ? 'text-brand-200' : 'text-gray-400']">{{ formatTime(msg.timestamp) }}</p>
                             </div>
                         </div>
 
                         <!-- Typing Indicator -->
                         <div v-if="aiLoading" class="flex justify-start">
-                            <div class="bg-white border border-gray-200 rounded-2xl rounded-bl-md px-4 py-3 shadow-sm">
+                            <div class="bg-white rounded-2xl rounded-bl-md px-4 py-3 shadow-soft">
                                 <div class="flex items-center gap-1">
-                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
-                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
-                                    <div class="w-2 h-2 bg-gray-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
+                                    <div class="w-2 h-2 bg-brand-300 rounded-full animate-bounce" style="animation-delay: 0ms"></div>
+                                    <div class="w-2 h-2 bg-brand-300 rounded-full animate-bounce" style="animation-delay: 150ms"></div>
+                                    <div class="w-2 h-2 bg-brand-300 rounded-full animate-bounce" style="animation-delay: 300ms"></div>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Quick Actions -->
-                    <div class="px-3 py-2 border-t border-gray-100 bg-white overflow-x-auto">
+                    <div class="px-3 py-2 border-t border-gray-100/50 bg-white/80 overflow-x-auto">
                         <div class="flex gap-2 min-w-max">
-                            <button @click="askAI('What are the success factors for this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                            <button @click="askAI('What are the success factors for this project?')" class="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-xs text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition whitespace-nowrap">
                                 <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
                                 </svg>
                                 Success Factors
                             </button>
-                            <button @click="askAI('What are the main challenges and blockers?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                            <button @click="askAI('What are the main challenges and blockers?')" class="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-xs text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition whitespace-nowrap">
                                 <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
                                 </svg>
                                 Challenges
                             </button>
-                            <button @click="askAI('How can we improve this project?')" class="flex items-center gap-1.5 px-3 py-2 border border-gray-200 rounded-xl text-xs text-gray-600 hover:bg-gray-50 transition whitespace-nowrap">
+                            <button @click="askAI('How can we improve this project?')" class="flex items-center gap-1.5 px-3 py-2 bg-gray-50 rounded-full text-xs text-gray-600 hover:bg-brand-50 hover:text-brand-600 transition whitespace-nowrap">
                                 <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"/>
                                 </svg>
@@ -472,16 +614,16 @@
                     </div>
 
                     <!-- Input -->
-                    <div class="px-3 py-3 border-t border-gray-100 bg-white">
+                    <div class="px-3 py-3 border-t border-gray-100/50 bg-white">
                         <div class="flex gap-2 items-center">
                             <input
                                 v-model="aiInput"
                                 @keyup.enter="sendAIMessage"
                                 type="text"
                                 placeholder="How can we improve?"
-                                class="flex-1 min-w-0 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent text-sm"
+                                class="flex-1 min-w-0 px-4 py-2.5 bg-gray-50 border-0 rounded-full focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white text-sm transition"
                             />
-                            <button @click="sendAIMessage" :disabled="!aiInput.trim() || aiLoading" class="w-10 h-10 flex-shrink-0 bg-gray-900 text-white rounded-xl flex items-center justify-center hover:bg-gray-800 transition disabled:opacity-50 disabled:cursor-not-allowed">
+                            <button @click="sendAIMessage" :disabled="!aiInput.trim() || aiLoading" class="w-10 h-10 flex-shrink-0 bg-gradient-to-br from-brand-500 to-brand-600 text-white rounded-full flex items-center justify-center hover:from-brand-600 hover:to-brand-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-md">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
                                 </svg>
@@ -494,11 +636,15 @@
         </div>
 
         <!-- Implementation Plan Modal -->
-        <div v-if="showImplementationModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
-                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="text-lg md:text-xl font-bold text-gray-900">Implementation Plan</h2>
-                    <button @click="showImplementationModal = false" class="text-gray-400 hover:text-gray-600 text-2xl">&times;</button>
+        <div v-if="showImplementationModal" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-2xl shadow-soft-lg w-full max-w-4xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+                <div class="p-4 md:p-6 border-b border-gray-100/50 flex items-center justify-between bg-gradient-to-r from-brand-50/50 to-white">
+                    <h2 class="text-lg md:text-xl font-bold text-[#1F1F1F]">Implementation Plan</h2>
+                    <button @click="showImplementationModal = false" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="p-4 md:p-6 overflow-y-auto flex-1">
                     <p class="text-gray-600 mb-4 md:mb-6 text-sm md:text-base" v-if="selectedPath.project_summary">{{ selectedPath.project_summary }}</p>
@@ -535,9 +681,9 @@
                                     </td>
                                     <td class="py-4">
                                         <div class="flex items-center gap-2">
-                                            <span class="text-sm">{{ phase.progress }}%</span>
-                                            <div class="w-24 bg-gray-200 rounded-full h-2">
-                                                <div class="bg-indigo-500 h-2 rounded-full" :style="{ width: phase.progress + '%' }"></div>
+                                            <span class="text-sm font-medium">{{ phase.progress }}%</span>
+                                            <div class="w-24 bg-gray-100 rounded-full h-2">
+                                                <div class="bg-brand-500 h-2 rounded-full transition-all" :style="{ width: phase.progress + '%' }"></div>
                                             </div>
                                         </div>
                                     </td>
@@ -629,18 +775,23 @@
         </div>
 
         <!-- Phase Detail Modal -->
-        <div v-if="selectedPhase" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+        <div v-if="selectedPhase" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-2xl shadow-soft-lg w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
                 <!-- Header -->
-                <div class="p-4 md:p-5 border-b border-gray-100 flex items-center justify-between">
+                <div class="p-4 md:p-5 border-b border-gray-100/50 flex items-center justify-between bg-gradient-to-r from-brand-50/50 to-white">
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="text-purple-500 text-xl">📋</span>
-                        <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedPhase.title }}</h2>
-                        <button class="text-gray-400 hover:text-gray-600">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg>
-                        </button>
+                        <div class="w-10 h-10 rounded-full bg-brand-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg md:text-xl font-bold text-[#1F1F1F] truncate">{{ selectedPhase.title }}</h2>
                     </div>
-                    <button @click="selectedPhase = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
+                    <button @click="selectedPhase = null" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
@@ -661,23 +812,23 @@
                         <!-- Progress Bar -->
                         <div class="mb-5">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-700">Progress</span>
-                                <span class="text-sm font-bold text-gray-900">{{ selectedPhase.progress }}%</span>
+                                <span class="text-sm font-medium text-gray-600">Progress</span>
+                                <span class="text-sm font-bold text-[#1F1F1F]">{{ selectedPhase.progress }}%</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="h-2 rounded-full transition-all" :class="selectedPhase.progress >= 80 ? 'bg-green-500' : selectedPhase.progress >= 50 ? 'bg-blue-500' : 'bg-red-400'" :style="{ width: selectedPhase.progress + '%' }"></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2">
+                                <div class="h-2 rounded-full transition-all" :class="selectedPhase.progress >= 80 ? 'bg-emerald-500' : selectedPhase.progress >= 50 ? 'bg-brand-500' : 'bg-amber-500'" :style="{ width: selectedPhase.progress + '%' }"></div>
                             </div>
                         </div>
 
                         <!-- Timeline & Workload -->
                         <div class="flex flex-wrap gap-x-8 gap-y-2 mb-5 text-sm">
                             <div class="flex items-center gap-2">
-                                <span class="text-blue-500 font-medium">Due date</span>
-                                <span class="text-gray-900">{{ selectedPhase.due_date ? formatDateLong(selectedPhase.due_date) : '—' }}</span>
+                                <span class="text-brand-500 font-medium">Due date</span>
+                                <span class="text-[#1F1F1F]">{{ selectedPhase.due_date ? formatDateLong(selectedPhase.due_date) : '—' }}</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-500 font-medium">Workload</span>
-                                <span class="text-gray-900">{{ selectedPhase.workload_days ? selectedPhase.workload_days + ' days of work' : '—' }}</span>
+                                <span class="text-[#1F1F1F]">{{ selectedPhase.workload_days ? selectedPhase.workload_days + ' days of work' : '—' }}</span>
                             </div>
                         </div>
 
@@ -705,7 +856,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-500">Category</span>
-                                <span v-if="selectedPhase.category" class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">{{ selectedPhase.category }}</span>
+                                <span v-if="selectedPhase.category" class="px-2.5 py-1 bg-brand-100/70 text-brand-700 rounded-full text-xs font-medium">{{ selectedPhase.category }}</span>
                                 <span v-else class="text-gray-400">—</span>
                             </div>
                         </div>
@@ -756,25 +907,30 @@
         </div>
 
         <!-- Step Detail Modal -->
-        <div v-if="selectedStep" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
+        <div v-if="selectedStep" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-2xl shadow-soft-lg w-full max-w-5xl max-h-[95vh] md:max-h-[90vh] overflow-hidden flex flex-col">
                 <!-- Header -->
-                <div class="p-4 md:p-5 border-b border-gray-100 flex items-center justify-between">
+                <div class="p-4 md:p-5 border-b border-gray-100/50 flex items-center justify-between bg-gradient-to-r from-blue-50/50 to-white">
                     <div class="flex items-center gap-3 min-w-0">
-                        <span class="text-blue-500 text-xl">📝</span>
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                            </svg>
+                        </div>
                         <div class="min-w-0">
-                            <h2 class="text-lg md:text-xl font-bold text-gray-900 truncate">{{ selectedStep.title }}</h2>
+                            <h2 class="text-lg md:text-xl font-bold text-[#1F1F1F] truncate">{{ selectedStep.title }}</h2>
                             <p class="text-sm text-gray-500 flex items-center gap-1">
                                 <span>Phase</span>
-                                <span class="text-purple-500">📋</span>
+                                <span class="text-brand-500">·</span>
                                 <span>{{ selectedStepParentPhase?.title }}</span>
                             </p>
                         </div>
-                        <button class="text-gray-400 hover:text-gray-600 ml-2">
-                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><circle cx="4" cy="10" r="2"/><circle cx="10" cy="10" r="2"/><circle cx="16" cy="10" r="2"/></svg>
-                        </button>
                     </div>
-                    <button @click="selectedStep = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
+                    <button @click="selectedStep = null" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <div class="flex-1 overflow-hidden flex flex-col md:flex-row">
@@ -795,23 +951,23 @@
                         <!-- Progress Bar -->
                         <div class="mb-5">
                             <div class="flex items-center justify-between mb-2">
-                                <span class="text-sm font-medium text-gray-700">Progress</span>
-                                <span class="text-sm font-bold text-gray-900">{{ selectedStep.progress }}%</span>
+                                <span class="text-sm font-medium text-gray-600">Progress</span>
+                                <span class="text-sm font-bold text-[#1F1F1F]">{{ selectedStep.progress }}%</span>
                             </div>
-                            <div class="w-full bg-gray-200 rounded-full h-2">
-                                <div class="h-2 rounded-full transition-all" :class="selectedStep.progress >= 80 ? 'bg-green-500' : selectedStep.progress >= 50 ? 'bg-blue-500' : 'bg-red-400'" :style="{ width: selectedStep.progress + '%' }"></div>
+                            <div class="w-full bg-gray-100 rounded-full h-2">
+                                <div class="h-2 rounded-full transition-all" :class="selectedStep.progress >= 80 ? 'bg-emerald-500' : selectedStep.progress >= 50 ? 'bg-brand-500' : 'bg-amber-500'" :style="{ width: selectedStep.progress + '%' }"></div>
                             </div>
                         </div>
 
                         <!-- Timeline & Workload -->
                         <div class="flex flex-wrap gap-x-8 gap-y-2 mb-5 text-sm">
                             <div class="flex items-center gap-2">
-                                <span class="text-blue-500 font-medium">Timeline</span>
-                                <span class="text-gray-900">{{ selectedStep.due_date ? formatDateLong(selectedStep.due_date) : '—' }}</span>
+                                <span class="text-brand-500 font-medium">Timeline</span>
+                                <span class="text-[#1F1F1F]">{{ selectedStep.due_date ? formatDateLong(selectedStep.due_date) : '—' }}</span>
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-500 font-medium">Workload</span>
-                                <span class="text-gray-900">{{ selectedStep.workload_days ? selectedStep.workload_days + ' days of work' : '—' }}</span>
+                                <span class="text-[#1F1F1F]">{{ selectedStep.workload_days ? selectedStep.workload_days + ' days of work' : '—' }}</span>
                             </div>
                         </div>
 
@@ -839,7 +995,7 @@
                             </div>
                             <div class="flex items-center gap-2">
                                 <span class="text-gray-500">Category</span>
-                                <span v-if="selectedStep.category" class="px-2 py-1 bg-purple-100 text-purple-700 rounded text-xs font-medium">{{ selectedStep.category }}</span>
+                                <span v-if="selectedStep.category" class="px-2.5 py-1 bg-brand-100/70 text-brand-700 rounded-full text-xs font-medium">{{ selectedStep.category }}</span>
                                 <span v-else class="text-gray-400">—</span>
                             </div>
                         </div>
@@ -884,12 +1040,23 @@
         </div>
 
         <!-- Action Item Detail Modal -->
-        <div v-if="selectedAction" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-2 md:p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
+        <div v-if="selectedAction" class="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-[60] p-2 md:p-4">
+            <div class="bg-white rounded-2xl shadow-soft-lg w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col">
                 <!-- Header -->
-                <div class="p-4 md:p-6 border-b border-gray-100 flex items-center justify-between">
-                    <h2 class="text-lg md:text-xl font-bold text-gray-900">{{ selectedAction.title }}</h2>
-                    <button @click="selectedAction = null" class="text-gray-400 hover:text-gray-600 text-2xl flex-shrink-0">&times;</button>
+                <div class="p-4 md:p-6 border-b border-gray-100/50 flex items-center justify-between bg-gradient-to-r from-amber-50/50 to-white">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-full bg-amber-100 flex items-center justify-center">
+                            <svg class="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-lg md:text-xl font-bold text-[#1F1F1F]">{{ selectedAction.title }}</h2>
+                    </div>
+                    <button @click="selectedAction = null" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center text-gray-500 hover:text-gray-700 transition flex-shrink-0">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                        </svg>
+                    </button>
                 </div>
 
                 <!-- Content -->
@@ -1117,42 +1284,42 @@
                 statusBadgeClass(status) {
                     const c = {
                         draft: 'bg-gray-100 text-gray-600',
-                        active: 'bg-emerald-50 text-emerald-700',
-                        on_hold: 'bg-amber-50 text-amber-700',
-                        completed: 'bg-teal-50 text-teal-700',
+                        active: 'bg-emerald-100/70 text-emerald-700',
+                        on_hold: 'bg-amber-100/70 text-amber-700',
+                        completed: 'bg-brand-100/70 text-brand-700',
                         archived: 'bg-gray-100 text-gray-500'
                     };
                     return `inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-medium before:content-['•'] before:text-current ${c[status] || ''}`;
                 },
                 priorityBadgeClass(priority) {
-                    const c = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100 text-blue-600', high: 'bg-amber-100 text-amber-700', critical: 'bg-red-100 text-red-600' };
+                    const c = { low: 'bg-gray-100 text-gray-600', medium: 'bg-blue-100/70 text-blue-600', high: 'bg-amber-100/70 text-amber-700', critical: 'bg-red-100/70 text-red-600' };
                     return `px-3 py-1 rounded-full text-xs font-medium ${c[priority] || ''}`;
                 },
                 phaseStatusClass(status) {
-                    const c = { todo: 'bg-gray-200 text-gray-700', in_progress: 'bg-blue-200 text-blue-800', blocked: 'bg-red-200 text-red-800', done: 'bg-green-200 text-green-800' };
-                    return `px-2 py-1 rounded text-xs font-semibold ${c[status] || ''}`;
+                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100/70 text-blue-700', blocked: 'bg-red-100/70 text-red-700', done: 'bg-emerald-100/70 text-emerald-700' };
+                    return `px-2.5 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
                 },
                 stepStatusClass(status) {
-                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-700', blocked: 'bg-red-100 text-red-700', done: 'bg-green-100 text-green-700' };
-                    return `px-2 py-0.5 rounded text-xs ${c[status] || ''}`;
+                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100/70 text-blue-700', blocked: 'bg-red-100/70 text-red-700', done: 'bg-emerald-100/70 text-emerald-700' };
+                    return `px-2.5 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
                 },
                 actionStatusClass(status) {
-                    const c = { todo: 'text-gray-500', in_progress: 'text-blue-600', blocked: 'text-red-600', done: 'text-green-600' };
+                    const c = { todo: 'text-gray-500', in_progress: 'text-blue-600', blocked: 'text-red-600', done: 'text-emerald-600' };
                     return c[status] || '';
                 },
                 actionStatusBadgeClass(status) {
-                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100 text-blue-600', blocked: 'bg-red-100 text-red-600', done: 'bg-green-100 text-green-600' };
+                    const c = { todo: 'bg-gray-100 text-gray-600', in_progress: 'bg-blue-100/70 text-blue-600', blocked: 'bg-red-100/70 text-red-600', done: 'bg-emerald-100/70 text-emerald-600' };
                     return `px-3 py-1 rounded-full text-xs font-medium ${c[status] || ''}`;
                 },
                 // Status risk badge for Phase/Step detail modals
                 statusRiskBadgeClass(status) {
                     const c = {
-                        todo: 'bg-gray-100 text-gray-700',
-                        in_progress: 'bg-blue-100 text-blue-700',
-                        blocked: 'bg-red-100 text-red-700',
-                        done: 'bg-green-100 text-green-700'
+                        todo: 'bg-gray-100 text-gray-600',
+                        in_progress: 'bg-blue-100/70 text-blue-700',
+                        blocked: 'bg-red-100/70 text-red-700',
+                        done: 'bg-emerald-100/70 text-emerald-700'
                     };
-                    return `px-2 py-1 rounded text-xs font-medium ${c[status] || 'bg-gray-100 text-gray-700'}`;
+                    return `px-2.5 py-1 rounded-full text-xs font-medium ${c[status] || 'bg-gray-100 text-gray-600'}`;
                 },
                 formatStatusRisk(status) {
                     const map = {
@@ -1165,14 +1332,14 @@
                 },
                 // Action item status for cards
                 actionItemStatusBadgeClass(item) {
-                    if (item.status === 'done') return 'bg-green-100 text-green-700 px-2 py-0.5 rounded';
-                    if (item.status === 'in_progress') return 'bg-blue-100 text-blue-700 px-2 py-0.5 rounded';
-                    if (item.status === 'blocked') return 'bg-red-100 text-red-700 px-2 py-0.5 rounded';
+                    if (item.status === 'done') return 'bg-emerald-100/70 text-emerald-700 px-2.5 py-1 rounded-full';
+                    if (item.status === 'in_progress') return 'bg-blue-100/70 text-blue-700 px-2.5 py-1 rounded-full';
+                    if (item.status === 'blocked') return 'bg-red-100/70 text-red-700 px-2.5 py-1 rounded-full';
                     // Check if overdue
                     if (item.due_date && new Date(item.due_date) < new Date()) {
-                        return 'bg-red-100 text-red-700 px-2 py-0.5 rounded';
+                        return 'bg-red-100/70 text-red-700 px-2.5 py-1 rounded-full';
                     }
-                    return 'bg-gray-100 text-gray-700 px-2 py-0.5 rounded';
+                    return 'bg-gray-100 text-gray-600 px-2.5 py-1 rounded-full';
                 },
                 formatActionItemStatus(item) {
                     if (item.status === 'done') return 'Done';

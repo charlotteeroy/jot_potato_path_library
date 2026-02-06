@@ -315,69 +315,138 @@ class PathViewSet(viewsets.ModelViewSet):
 
         return context
 
+    def _is_completed_or_archived(self, path):
+        """Check if path is in a finished state."""
+        return path.status in (PathStatus.COMPLETED, PathStatus.ARCHIVED)
+
     def _generate_ai_response(self, query, path, ctx):
         """Generate an intelligent response based on the query and comprehensive path context."""
         today = date.today()
 
-        # Status and progress queries
-        if any(word in query for word in ['status', 'progress', 'overview', 'how', 'doing', 'going']):
+        # Split query into individual words for word-level matching
+        words = query.split()
+
+        def has_word(targets):
+            """Check if any target word appears as a standalone word in the query."""
+            return any(w in words for w in targets)
+
+        def has_phrase(targets):
+            """Check if any target phrase appears anywhere in the query string."""
+            return any(phrase in query for phrase in targets)
+
+        # --- PHASE 1: Check multi-word phrases first (most specific) ---
+
+        if has_phrase(['how can we improve', 'how to improve', 'what to improve', 'how do we improve',
+                       'can we improve', 'suggestions for', 'recommendations for', 'advice on']):
+            return self._response_improvements(path, ctx)
+
+        if has_phrase(['what went well', 'what was achieved', 'what did we accomplish',
+                       'what was solved', 'what we solved', 'what was done']):
+            return self._response_accomplishments(path, ctx)
+
+        if has_phrase(['root cause', 'where does it come from', 'why is this happening',
+                       'what caused', 'original issue', 'source of']):
+            return self._response_issue_chain(path, ctx)
+
+        if has_phrase(['on hold', 'why paused', 'why stopped', 'put on hold']):
+            return self._response_on_hold(path, ctx)
+
+        if has_phrase(['how is it going', 'how are we doing', 'where are we',
+                       'what is the status', 'current status', 'project status']):
             return self._response_status_overview(path, ctx)
 
-        # Blockers and issues queries
-        if any(word in query for word in ['block', 'issue', 'problem', 'stuck', 'risk', 'challenge']):
+        if has_phrase(['success factor', 'key factor', 'what made it work', 'why it worked']):
+            return self._response_success_factors(path, ctx)
+
+        if has_phrase(['tell me about', 'tell me everything', 'full summary', 'complete summary']):
+            return self._response_full_summary(path, ctx)
+
+        # --- PHASE 2: Check specific intent words (before generic ones) ---
+
+        # Improvements and recommendations
+        if has_word(['improve', 'better', 'recommend', 'suggest', 'advice', 'optimize', 'enhance']):
+            return self._response_improvements(path, ctx)
+
+        # Blockers and risks
+        if has_word(['blocker', 'blocked', 'blockers', 'stuck', 'risk', 'risks']):
             return self._response_blockers(path, ctx)
 
+        # Learning and insights
+        if has_word(['learn', 'learning', 'learnings', 'insight', 'insights', 'takeaway', 'lesson', 'lessons']):
+            return self._response_learnings(path, ctx)
+
         # Due dates and deadlines
-        if any(word in query for word in ['due', 'deadline', 'upcoming', 'soon', 'overdue', 'late']):
+        if has_word(['due', 'deadline', 'deadlines', 'upcoming', 'overdue', 'late']):
             return self._response_deadlines(path, ctx, today)
 
         # Accomplishments and completed work
-        if any(word in query for word in ['accomplish', 'done', 'complete', 'finish', 'solved', 'achieve', 'success']):
+        if has_word(['accomplish', 'accomplished', 'accomplishments', 'solved', 'achieved', 'achievements']):
             return self._response_accomplishments(path, ctx)
 
         # Team and assignees
-        if any(word in query for word in ['team', 'who', 'assignee', 'member', 'person', 'people', 'workload']):
+        if has_word(['team', 'assignee', 'member', 'members', 'people', 'workload']):
             return self._response_team(path, ctx)
 
         # Phase information
-        if any(word in query for word in ['phase', 'stage', 'plan', 'implementation']):
+        if has_word(['phase', 'phases', 'stage', 'stages', 'implementation']):
             return self._response_phases(path, ctx)
 
         # Step information
-        if any(word in query for word in ['step', 'task', 'action', 'activity']):
+        if has_word(['step', 'steps', 'task', 'tasks', 'action', 'actions', 'activity']):
             return self._response_steps(path, ctx)
 
         # Timeline and duration
-        if any(word in query for word in ['timeline', 'duration', 'time', 'long', 'start', 'end', 'when']):
+        if has_word(['timeline', 'duration', 'schedule']):
             return self._response_timeline(path, ctx, today)
 
         # Goal and purpose
-        if any(word in query for word in ['goal', 'purpose', 'why', 'objective', 'aim', 'target']):
+        if has_word(['goal', 'purpose', 'objective', 'aim', 'target']):
             return self._response_goal(path, ctx)
 
-        # Issue, root cause, initiative chain
-        if any(word in query for word in ['issue', 'root', 'cause', 'initiative', 'origin', 'source', 'feedback']):
-            return self._response_issue_chain(path, ctx)
-
         # Success factors
-        if any(word in query for word in ['success', 'factor', 'key', 'critical', 'important']):
+        if has_word(['success', 'factor', 'factors']):
             return self._response_success_factors(path, ctx)
 
-        # Improvements and recommendations
-        if any(word in query for word in ['improve', 'better', 'recommend', 'suggest', 'advice', 'help', 'optimize']):
-            return self._response_improvements(path, ctx)
-
         # On hold / paused information
-        if any(word in query for word in ['hold', 'pause', 'stop', 'wait', 'delay']):
+        if has_word(['hold', 'pause', 'paused', 'delay', 'delayed']):
             return self._response_on_hold(path, ctx)
 
-        # Learning and insights
-        if any(word in query for word in ['learn', 'insight', 'takeaway', 'lesson']):
-            return self._response_learnings(path, ctx)
-
-        # Summary / everything
-        if any(word in query for word in ['summary', 'everything', 'all', 'full', 'detail', 'tell me about']):
+        # Summary
+        if has_word(['summary', 'everything', 'full', 'detail', 'details']):
             return self._response_full_summary(path, ctx)
+
+        # Issue chain
+        if has_word(['issue', 'root', 'cause', 'initiative', 'origin', 'source', 'feedback']):
+            return self._response_issue_chain(path, ctx)
+
+        # --- PHASE 3: Generic / fallback words ---
+
+        if has_word(['status', 'progress', 'overview', 'doing', 'going']):
+            return self._response_status_overview(path, ctx)
+
+        if has_word(['challenge', 'challenges', 'problem', 'problems']):
+            return self._response_blockers(path, ctx)
+
+        if has_word(['done', 'complete', 'completed', 'finish', 'finished']):
+            return self._response_accomplishments(path, ctx)
+
+        if has_word(['who']):
+            return self._response_team(path, ctx)
+
+        if has_word(['plan']):
+            return self._response_phases(path, ctx)
+
+        if has_word(['when', 'start', 'end', 'long', 'time']):
+            return self._response_timeline(path, ctx, today)
+
+        if has_word(['why']):
+            return self._response_goal(path, ctx)
+
+        if has_word(['how']):
+            return self._response_status_overview(path, ctx)
+
+        if has_word(['help']):
+            return self._response_improvements(path, ctx)
 
         # Default response with comprehensive info
         return self._response_default(path, ctx)
@@ -406,7 +475,12 @@ class PathViewSet(viewsets.ModelViewSet):
         if ctx['in_progress_phases'] > 0:
             response += f", {ctx['in_progress_phases']} in progress"
 
-        if path.target_completion_date:
+        if self._is_completed_or_archived(path):
+            if path.completed_at:
+                response += f"\n\n🏁 **Completed on** {path.completed_at.strftime('%B %d, %Y')}"
+            if path.what_was_solved:
+                response += f"\n✅ {len(path.what_was_solved)} outcome(s) documented"
+        elif path.target_completion_date:
             days_left = (path.target_completion_date - date.today()).days
             if days_left > 0:
                 response += f"\n\n📅 **{days_left} days** until target completion ({path.target_completion_date.strftime('%B %d, %Y')})"
@@ -426,10 +500,16 @@ class PathViewSet(viewsets.ModelViewSet):
 
         if not ctx['blocked_actions'] and not ctx['overdue_actions']:
             response += "✅ **No current blockers or overdue items!**\n\n"
-            response += "All tasks are on track."
 
-            # Add potential risks
-            if len(ctx['in_progress_actions']) > 5:
+            if self._is_completed_or_archived(path):
+                response += "This path has been completed with no unresolved blockers."
+            elif path.status == PathStatus.ON_HOLD:
+                response += "No blockers were recorded before this path was paused."
+            else:
+                response += "All tasks are on track."
+
+            # Add potential risks (only relevant for active paths)
+            if not self._is_completed_or_archived(path) and len(ctx['in_progress_actions']) > 5:
                 response += f"\n\n⚡ **Potential risk:** {len(ctx['in_progress_actions'])} items are in progress simultaneously. Consider focusing on fewer items."
 
             return response
@@ -456,6 +536,24 @@ class PathViewSet(viewsets.ModelViewSet):
 
     def _response_deadlines(self, path, ctx, today):
         """Generate deadlines response."""
+        if self._is_completed_or_archived(path):
+            response = "📅 **Timeline Summary**\n\n"
+            response += "This path has been completed — there are no pending deadlines.\n\n"
+            if path.started_at:
+                response += f"**Started:** {path.started_at.strftime('%B %d, %Y')}\n"
+            if path.completed_at:
+                response += f"**Completed:** {path.completed_at.strftime('%B %d, %Y')}\n"
+            if path.started_at and path.completed_at:
+                duration = (path.completed_at.date() - path.started_at.date()).days
+                response += f"**Duration:** {duration} days\n"
+            if path.target_completion_date:
+                if path.completed_at and path.completed_at.date() <= path.target_completion_date:
+                    response += "\n✅ Completed on or before the target date."
+                elif path.completed_at and path.completed_at.date() > path.target_completion_date:
+                    days_late = (path.completed_at.date() - path.target_completion_date).days
+                    response += f"\n⚠️ Completed {days_late} day(s) after the target date."
+            return response
+
         if not ctx['upcoming_due']:
             return "📅 **No pending tasks with due dates.**\n\nAll tasks either have no due date set or are already completed."
 
@@ -587,6 +685,17 @@ class PathViewSet(viewsets.ModelViewSet):
 
     def _response_steps(self, path, ctx):
         """Generate steps/tasks information response."""
+        if self._is_completed_or_archived(path):
+            response = "📝 **Steps & Tasks (Final Summary)**\n\n"
+            response += f"**Results:**\n"
+            response += f"• Total action items: {ctx['total_actions']}\n"
+            response += f"• Completed: {ctx['completed_actions']}\n"
+            if ctx['total_actions'] > ctx['completed_actions']:
+                remaining = ctx['total_actions'] - ctx['completed_actions']
+                response += f"• Not completed: {remaining}\n"
+            response += f"\n**Phases:** {ctx['completed_phases']}/{len(ctx['phases'])} completed\n"
+            return response
+
         response = "📝 **Steps & Tasks**\n\n"
 
         response += f"**Summary:**\n"
@@ -696,6 +805,39 @@ class PathViewSet(viewsets.ModelViewSet):
 
     def _response_success_factors(self, path, ctx):
         """Generate success factors response."""
+        if self._is_completed_or_archived(path):
+            response = "🏆 **Success Factors (Retrospective)**\n\n"
+
+            factors = []
+
+            if ctx['completed_actions'] == ctx['total_actions'] and ctx['total_actions'] > 0:
+                factors.append(f"✅ **All {ctx['total_actions']} action items completed** — full delivery")
+            elif ctx['total_actions'] > 0:
+                factors.append(f"✅ **{ctx['completed_actions']}/{ctx['total_actions']} action items completed** ({path.progress_percentage}%)")
+
+            if ctx['completed_phases'] > 0:
+                factors.append(f"✅ **{ctx['completed_phases']}/{len(ctx['phases'])} phases completed**")
+
+            if len(ctx['all_assignees']) > 0:
+                factors.append(f"👥 **{len(ctx['all_assignees'])} team members** contributed")
+
+            if path.what_was_solved:
+                factors.append(f"🎯 **{len(path.what_was_solved)} outcome(s)** achieved")
+
+            if path.key_learnings:
+                factors.append(f"📚 **{len(path.key_learnings)} learning(s)** documented for future paths")
+
+            if path.goal_statement:
+                factors.append("🎯 **Clear goal was defined** from the start")
+
+            if ctx['days_active'] > 0:
+                factors.append(f"📅 **Completed in {ctx['days_active']} days**")
+
+            for factor in factors:
+                response += f"• {factor}\n"
+
+            return response
+
         response = "🏆 **Success Factors**\n\n"
 
         # Based on path data, identify key success factors
@@ -738,6 +880,43 @@ class PathViewSet(viewsets.ModelViewSet):
 
     def _response_improvements(self, path, ctx):
         """Generate improvements/recommendations response."""
+        if self._is_completed_or_archived(path):
+            response = "💡 **Retrospective Insights**\n\n"
+
+            insights = []
+
+            if path.key_learnings:
+                response += "**Key Learnings:**\n"
+                for item in path.key_learnings:
+                    response += f"• {item}\n"
+                response += "\n"
+
+            if path.completed_issues_faced:
+                response += "**Challenges Encountered:**\n"
+                for item in path.completed_issues_faced:
+                    response += f"• {item}\n"
+                response += "\n"
+
+            # Retrospective observations
+            if ctx['total_actions'] > 0 and ctx['completed_actions'] < ctx['total_actions']:
+                insights.append(f"📊 {ctx['total_actions'] - ctx['completed_actions']} action items were not completed — consider reviewing if they are still needed")
+
+            if ctx['blocked_actions']:
+                insights.append(f"⚠️ {len(ctx['blocked_actions'])} items remained blocked at completion — worth investigating for future paths")
+
+            if not path.key_learnings:
+                insights.append("📝 No learnings documented yet — consider adding retrospective notes for future reference")
+
+            if insights:
+                response += "**Suggestions for Future Paths:**\n"
+                for insight in insights:
+                    response += f"• {insight}\n"
+            elif not path.key_learnings and not path.completed_issues_faced:
+                response += "✅ This path was completed successfully.\n\n"
+                response += "Consider documenting learnings to help future improvement paths."
+
+            return response
+
         response = "💡 **Recommendations**\n\n"
 
         recommendations = []
@@ -907,17 +1086,27 @@ class PathViewSet(viewsets.ModelViewSet):
         response += f"**Progress:** {path.progress_percentage}% ({ctx['completed_actions']}/{ctx['total_actions']} tasks)\n"
         response += f"**Team:** {len(ctx['all_assignees'])} members\n\n"
 
-        response += "💡 **Ask me about:**\n"
-        response += "• Status & progress\n"
-        response += "• Blockers & risks\n"
-        response += "• Deadlines & timeline\n"
-        response += "• Team & workload\n"
-        response += "• Phases & steps\n"
-        response += "• Goal & purpose\n"
-        response += "• Issue & root cause\n"
-        response += "• Accomplishments\n"
-        response += "• Recommendations\n"
-        response += "• Full summary"
+        if self._is_completed_or_archived(path):
+            response += "💡 **Ask me about:**\n"
+            response += "• Accomplishments & outcomes\n"
+            response += "• Success factors\n"
+            response += "• Learnings & insights\n"
+            response += "• Timeline & duration\n"
+            response += "• Team contributions\n"
+            response += "• Retrospective insights\n"
+            response += "• Full summary"
+        else:
+            response += "💡 **Ask me about:**\n"
+            response += "• Status & progress\n"
+            response += "• Blockers & risks\n"
+            response += "• Deadlines & timeline\n"
+            response += "• Team & workload\n"
+            response += "• Phases & steps\n"
+            response += "• Goal & purpose\n"
+            response += "• Issue & root cause\n"
+            response += "• Accomplishments\n"
+            response += "• Recommendations\n"
+            response += "• Full summary"
 
         return response
 
