@@ -54,9 +54,9 @@
 
             <!-- Main Navigation -->
             <nav class="flex flex-col items-center gap-2 flex-1">
-                <!-- Potato (Home/Paths) - Active -->
-                <button class="w-10 h-10 rounded-xl bg-blue-100 flex items-center justify-center hover:bg-blue-200 transition" title="Paths Library">
-                    <svg class="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="currentColor">
+                <!-- Potato (Home/Paths) -->
+                <button @click="currentView = 'paths'; selectedPath = null" :class="['w-10 h-10 rounded-xl flex items-center justify-center transition', currentView === 'paths' ? 'bg-blue-100' : 'hover:bg-gray-700']" title="Paths Library">
+                    <svg :class="['w-6 h-6', currentView === 'paths' ? 'text-blue-600' : 'text-gray-400']" viewBox="0 0 24 24" fill="currentColor">
                         <ellipse cx="12" cy="13" rx="8" ry="9" fill="currentColor" opacity="0.3"/>
                         <ellipse cx="12" cy="12" rx="7" ry="8" fill="currentColor"/>
                         <circle cx="9" cy="10" r="1" fill="white"/>
@@ -95,6 +95,13 @@
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
                 </button>
+                <!-- Settings -->
+                <button @click="currentView = 'settings'" :class="['w-10 h-10 rounded-xl flex items-center justify-center transition', currentView === 'settings' ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-700 text-gray-400 hover:text-white']" title="Settings">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </button>
             </div>
         </aside>
 
@@ -124,7 +131,7 @@
                             <span class="hidden sm:inline text-gray-900 font-medium">Work Area</span>
                             <span class="hidden sm:inline mx-2 text-gray-400">»</span>
                             <button class="flex items-center gap-1 text-gray-900 font-medium hover:text-gray-600">
-                                Paths Library
+                                {{ currentView === 'settings' ? 'Settings' : 'Paths Library' }}
                                 <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
                                 </svg>
@@ -161,6 +168,8 @@
             </div>
 
             <main class="px-4 md:px-6 py-4 md:py-6">
+            <!-- Paths View -->
+            <div v-if="currentView === 'paths'">
             <!-- Stats -->
             <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
                 <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-100">
@@ -490,6 +499,266 @@
                     </div>
                 </div>
             </div>
+            </div><!-- End Paths View -->
+
+            <!-- Settings View -->
+            <div v-else-if="currentView === 'settings'">
+                <!-- Settings Header -->
+                <div class="mb-6">
+                    <h1 class="text-2xl font-bold text-gray-900 mb-2">Settings</h1>
+                    <!-- Settings Tabs -->
+                    <div class="flex flex-wrap gap-1 border-b border-gray-200">
+                        <button
+                            v-for="tab in settingsTabs"
+                            :key="tab.id"
+                            @click="settingsTab = tab.id"
+                            :class="[
+                                'px-4 py-2 text-sm font-medium transition-colors border-b-2 -mb-px',
+                                settingsTab === tab.id
+                                    ? 'text-gray-900 border-gray-900'
+                                    : 'text-gray-500 border-transparent hover:text-gray-700'
+                            ]"
+                        >{{ tab.label }}</button>
+                    </div>
+                </div>
+
+                <!-- Business Information Tab -->
+                <div v-if="settingsTab === 'business'" class="space-y-6">
+                    <!-- Page Title -->
+                    <div class="mb-6">
+                        <h2 class="text-xl font-semibold text-gray-900">Business Profile</h2>
+                        <p class="text-gray-500 text-sm">Manage your restaurant or hotel information and settings</p>
+                    </div>
+
+                    <!-- Basic Information -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Basic Information</h3>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Essential details about your business</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Business Name</label>
+                                <input type="text" v-model="businessSettings.name" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Business Type</label>
+                                <select v-model="businessSettings.type" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-gray-50">
+                                    <option v-for="type in businessTypes" :key="type" :value="type">{{ type }}</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2">
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Expertise / Specialty</label>
+                                <input type="text" v-model="businessSettings.specialty" class="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent bg-gray-50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Operating Hours -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Operating Hours</h3>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Set your business hours for each day of the week</p>
+
+                        <div class="space-y-3">
+                            <div v-for="(day, dayKey) in businessSettings.operatingHours" :key="dayKey" class="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                                <label class="relative inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" v-model="day.enabled" class="sr-only peer">
+                                    <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                                <span class="w-24 text-sm font-medium text-gray-700 capitalize">{{ dayKey }}</span>
+                                <input type="time" v-model="day.open" :disabled="!day.enabled" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                                <span class="text-gray-400">to</span>
+                                <input type="time" v-model="day.close" :disabled="!day.enabled" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm disabled:bg-gray-100 disabled:text-gray-400">
+                                <span v-if="!day.enabled" class="ml-auto text-sm text-gray-400">Closed</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Special Hours & Holidays -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <div>
+                                <div class="flex items-center gap-2 mb-1">
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    <h3 class="font-semibold text-gray-900">Special Hours & Holidays</h3>
+                                </div>
+                                <p class="text-sm text-gray-500">Set custom hours for holidays and special occasions</p>
+                            </div>
+                            <button @click="addHoliday" class="flex items-center gap-1 px-3 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                                Add Holiday
+                            </button>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div v-for="holiday in businessSettings.holidays" :key="holiday.id" class="p-4 border border-gray-200 rounded-lg">
+                                <div class="flex items-start justify-between gap-4">
+                                    <div class="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Holiday Name</label>
+                                            <input type="text" v-model="holiday.name" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                                        </div>
+                                        <div>
+                                            <label class="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                                            <input type="date" v-model="holiday.date" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                                        </div>
+                                    </div>
+                                    <button @click="removeHoliday(holiday.id)" class="text-red-500 hover:text-red-700 mt-6">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                <div class="mt-3 flex items-center gap-4">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" v-model="holiday.closedAllDay" class="sr-only peer">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                    </label>
+                                    <span class="text-sm text-gray-700">Closed all day</span>
+                                    <template v-if="!holiday.closedAllDay">
+                                        <input type="time" v-model="holiday.open" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                        <span class="text-gray-400">to</span>
+                                        <input type="time" v-model="holiday.close" class="px-3 py-1.5 border border-gray-200 rounded-lg text-sm">
+                                    </template>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Capacity & Facilities -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Capacity & Facilities</h3>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Information about your space and amenities</p>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                                    </svg>
+                                    Team Size
+                                </label>
+                                <input type="number" v-model="businessSettings.teamSize" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"/>
+                                    </svg>
+                                    Seating Capacity
+                                </label>
+                                <input type="number" v-model="businessSettings.seatingCapacity" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-1">
+                                    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+                                    </svg>
+                                    Bathrooms
+                                </label>
+                                <input type="number" v-model="businessSettings.bathrooms" class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Description -->
+                    <div class="bg-white rounded-xl border border-gray-200 p-6">
+                        <div class="flex items-center gap-2 mb-1">
+                            <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                            </svg>
+                            <h3 class="font-semibold text-gray-900">Business Description</h3>
+                        </div>
+                        <p class="text-sm text-gray-500 mb-4">Tell customers about your business</p>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                            <textarea v-model="businessSettings.description" rows="4" maxlength="500" placeholder="Describe your business, ambiance, specialties..." class="w-full px-3 py-2 border border-gray-200 rounded-lg bg-gray-50 resize-none focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"></textarea>
+                            <p class="text-sm text-gray-400 mt-1">{{ businessSettings.description.length }} / 500 characters</p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex items-center justify-end gap-3 pt-4">
+                        <button @click="resetBusinessSettings" class="px-4 py-2 text-gray-700 hover:text-gray-900 transition">Cancel</button>
+                        <button @click="saveBusinessSettings" class="flex items-center gap-2 px-4 py-2 bg-gray-900 text-white rounded-lg font-medium hover:bg-gray-800 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                            </svg>
+                            Save Changes
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Team Management Tab -->
+                <div v-else-if="settingsTab === 'team'" class="text-center py-12 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Team Management</h3>
+                    <p class="text-gray-500">Manage your team members and their roles</p>
+                    <p class="text-sm text-gray-400 mt-4">Coming soon...</p>
+                </div>
+
+                <!-- Personal Information Tab -->
+                <div v-else-if="settingsTab === 'personal'" class="text-center py-12 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Personal Information</h3>
+                    <p class="text-gray-500">Manage your personal profile and preferences</p>
+                    <p class="text-sm text-gray-400 mt-4">Coming soon...</p>
+                </div>
+
+                <!-- Manage Account Tab -->
+                <div v-else-if="settingsTab === 'account'" class="text-center py-12 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Manage My Account</h3>
+                    <p class="text-gray-500">Account security, password, and preferences</p>
+                    <p class="text-sm text-gray-400 mt-4">Coming soon...</p>
+                </div>
+
+                <!-- Integration Tab -->
+                <div v-else-if="settingsTab === 'integration'" class="text-center py-12 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Integrations</h3>
+                    <p class="text-gray-500">Connect with third-party services and APIs</p>
+                    <p class="text-sm text-gray-400 mt-4">Coming soon...</p>
+                </div>
+
+                <!-- Plans & Billing Tab -->
+                <div v-else-if="settingsTab === 'billing'" class="text-center py-12 text-gray-500">
+                    <svg class="w-12 h-12 mx-auto mb-4 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                    </svg>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Plans & Billing</h3>
+                    <p class="text-gray-500">Manage your subscription and payment methods</p>
+                    <p class="text-sm text-gray-400 mt-4">Coming soon...</p>
+                </div>
+            </div><!-- End Settings View -->
         </main>
         </div>
 
@@ -989,6 +1258,10 @@
         createApp({
             data() {
                 return {
+                    // View Management
+                    currentView: 'paths',
+
+                    // Paths
                     paths: [],
                     selectedPath: null,
                     currentFilter: 'all',
@@ -1016,7 +1289,43 @@
                     showAIAgent: false,
                     aiMessages: [],
                     aiInput: '',
-                    aiLoading: false
+                    aiLoading: false,
+
+                    // Settings
+                    settingsTab: 'business',
+                    settingsTabs: [
+                        { id: 'business', label: 'Business information' },
+                        { id: 'team', label: 'Team Management' },
+                        { id: 'personal', label: 'Personal information' },
+                        { id: 'account', label: 'Manage my account' },
+                        { id: 'integration', label: 'Integration' },
+                        { id: 'billing', label: 'Plans & Billing' }
+                    ],
+                    businessSettings: {
+                        name: 'Le Grand Restaurant',
+                        type: 'Restaurant',
+                        specialty: 'French Cuisine',
+                        description: '',
+                        teamSize: 15,
+                        seatingCapacity: 80,
+                        bathrooms: 3,
+                        operatingHours: {
+                            monday: { enabled: true, open: '09:00', close: '22:00' },
+                            tuesday: { enabled: true, open: '09:00', close: '22:00' },
+                            wednesday: { enabled: true, open: '09:00', close: '22:00' },
+                            thursday: { enabled: true, open: '09:00', close: '22:00' },
+                            friday: { enabled: true, open: '09:00', close: '23:00' },
+                            saturday: { enabled: true, open: '10:00', close: '23:00' },
+                            sunday: { enabled: false, open: '', close: '' }
+                        },
+                        holidays: [
+                            { id: 1, name: 'Christmas Day', date: '', closedAllDay: true, open: '', close: '' },
+                            { id: 2, name: 'New Year\'s Day', date: '', closedAllDay: false, open: '12:00', close: '18:00' }
+                        ]
+                    },
+                    businessTypes: ['Restaurant', 'Hotel', 'Café', 'Bar', 'Bakery', 'Food Truck', 'Catering', 'Other'],
+                    settingsLoading: false,
+                    settingsSaved: false
                 };
             },
             computed: {
@@ -1243,6 +1552,60 @@
                 formatTime(date) {
                     if (!date) return '';
                     return new Date(date).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+                },
+                // Settings Methods
+                addHoliday() {
+                    const newId = Math.max(...this.businessSettings.holidays.map(h => h.id), 0) + 1;
+                    this.businessSettings.holidays.push({
+                        id: newId,
+                        name: '',
+                        date: '',
+                        closedAllDay: true,
+                        open: '',
+                        close: ''
+                    });
+                },
+                removeHoliday(id) {
+                    this.businessSettings.holidays = this.businessSettings.holidays.filter(h => h.id !== id);
+                },
+                resetBusinessSettings() {
+                    // Reset to default values
+                    this.businessSettings = {
+                        name: 'Le Grand Restaurant',
+                        type: 'Restaurant',
+                        specialty: 'French Cuisine',
+                        description: '',
+                        teamSize: 15,
+                        seatingCapacity: 80,
+                        bathrooms: 3,
+                        operatingHours: {
+                            monday: { enabled: true, open: '09:00', close: '22:00' },
+                            tuesday: { enabled: true, open: '09:00', close: '22:00' },
+                            wednesday: { enabled: true, open: '09:00', close: '22:00' },
+                            thursday: { enabled: true, open: '09:00', close: '22:00' },
+                            friday: { enabled: true, open: '09:00', close: '23:00' },
+                            saturday: { enabled: true, open: '10:00', close: '23:00' },
+                            sunday: { enabled: false, open: '', close: '' }
+                        },
+                        holidays: [
+                            { id: 1, name: 'Christmas Day', date: '', closedAllDay: true, open: '', close: '' },
+                            { id: 2, name: 'New Year\'s Day', date: '', closedAllDay: false, open: '12:00', close: '18:00' }
+                        ]
+                    };
+                    this.settingsSaved = false;
+                },
+                async saveBusinessSettings() {
+                    this.settingsLoading = true;
+                    try {
+                        // Simulate API call - replace with actual endpoint when available
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        this.settingsSaved = true;
+                        setTimeout(() => { this.settingsSaved = false; }, 3000);
+                    } catch (err) {
+                        console.error('Error saving settings:', err);
+                    } finally {
+                        this.settingsLoading = false;
+                    }
                 }
             },
             mounted() { this.fetchPaths(); }
