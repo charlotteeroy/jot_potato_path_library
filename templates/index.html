@@ -1154,23 +1154,254 @@
                     </div>
 
                     <!-- Plans & Billing Subtab -->
-                    <div v-else-if="accountSubtab === 'billing'" class="text-center py-12 text-txt-secondary">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-stroke-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
-                        </svg>
-                        <h3 class="text-lg font-medium text-txt-primary mb-2">Plans & Billing</h3>
-                        <p class="text-txt-secondary">Manage your subscription and payment methods</p>
-                        <p class="text-sm text-txt-third mt-4">Coming soon...</p>
+                    <div v-else-if="accountSubtab === 'billing'">
+                        <!-- Header -->
+                        <div class="border border-stroke-soft rounded-lg p-6 mb-6">
+                            <div class="flex items-center gap-3">
+                                <svg class="w-6 h-6 text-txt-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                </svg>
+                                <div>
+                                    <h3 class="text-base font-semibold text-txt-primary">Plans & Billing</h3>
+                                    <p class="text-sm text-txt-secondary">Manage your subscription and payment methods</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Available Plans -->
+                        <h4 class="text-base font-semibold text-txt-primary mb-4">Available Plans</h4>
+                        <div class="grid grid-cols-3 gap-4 mb-8">
+                            <div v-for="plan in billingPlans" :key="plan.id"
+                                :class="plan.id === currentPlan ? 'border-brand-dark border-2' : 'border border-stroke-soft'"
+                                class="rounded-lg p-5 flex flex-col justify-between relative">
+                                <!-- Badges -->
+                                <div v-if="plan.id === currentPlan" class="flex items-center gap-2 mb-3">
+                                    <span v-if="plan.popular" class="px-2.5 py-0.5 bg-brand-dark text-white text-xs font-medium rounded-full">Most Popular</span>
+                                    <span class="px-2.5 py-0.5 bg-brand-dark text-white text-xs font-medium rounded-full">Current Plan</span>
+                                </div>
+                                <div v-else-if="plan.popular" class="mb-3">
+                                    <span class="px-2.5 py-0.5 bg-brand-dark text-white text-xs font-medium rounded-full">Most Popular</span>
+                                </div>
+                                <!-- Plan info -->
+                                <div class="flex-1">
+                                    <h5 class="text-lg font-semibold text-txt-primary">{{ plan.name }}</h5>
+                                    <p class="text-sm text-txt-secondary mb-3">{{ plan.subtitle }}</p>
+                                    <div class="flex items-baseline gap-1 mb-4">
+                                        <span class="text-3xl font-bold text-txt-primary">${{ plan.price }}</span>
+                                        <span class="text-sm text-txt-secondary">/month</span>
+                                    </div>
+                                    <ul class="space-y-2 mb-6">
+                                        <li v-for="feature in plan.features" :key="feature" class="flex items-start gap-2 text-sm text-txt-secondary">
+                                            <svg class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                            {{ feature }}
+                                        </li>
+                                    </ul>
+                                </div>
+                                <!-- Action button -->
+                                <button v-if="plan.id === currentPlan"
+                                    class="w-full py-2.5 border border-stroke-soft rounded-lg text-sm font-medium text-txt-primary">
+                                    Current Plan
+                                </button>
+                                <button v-else-if="plan.price < billingPlans.find(p => p.id === currentPlan)?.price"
+                                    class="w-full py-2.5 border border-stroke-soft rounded-lg text-sm font-medium text-txt-primary hover:bg-fill-light transition">
+                                    Downgrade
+                                </button>
+                                <button v-else
+                                    class="w-full py-2.5 bg-brand-dark text-white rounded-lg text-sm font-medium hover:bg-brand-dark/90 transition">
+                                    Upgrade
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Payment Method -->
+                        <h4 class="text-base font-semibold text-txt-primary mb-4">Payment Method</h4>
+                        <div class="flex items-center justify-between border border-stroke-soft rounded-lg px-5 py-4 mb-8">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 rounded-lg bg-fill-light border border-stroke-soft flex items-center justify-center">
+                                    <svg class="w-5 h-5 text-txt-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <div class="text-sm font-medium text-txt-primary">&bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; &bull;&bull;&bull;&bull; 4242</div>
+                                    <div class="text-xs text-txt-third">Expires 12/2027</div>
+                                </div>
+                            </div>
+                            <button class="px-4 py-2 border border-stroke-soft rounded-lg text-sm font-medium text-txt-primary hover:bg-fill-light transition">Update</button>
+                        </div>
+
+                        <!-- Billing History -->
+                        <div class="flex items-center justify-between mb-4">
+                            <h4 class="text-base font-semibold text-txt-primary">Billing History</h4>
+                            <div class="flex items-center gap-3">
+                                <button @click="downloadAllInvoices" class="flex items-center gap-1.5 px-3 py-1.5 bg-brand-dark text-white rounded-lg text-xs font-medium hover:bg-brand-dark/90 transition">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                    Download all
+                                </button>
+                                <button class="text-sm font-medium text-txt-secondary hover:text-txt-primary transition">View All</button>
+                            </div>
+                        </div>
+                        <div class="border border-stroke-soft rounded-lg overflow-hidden">
+                            <table class="w-full">
+                                <thead>
+                                    <tr class="bg-fill-light border-b border-stroke-soft">
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-txt-secondary">Invoice</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-txt-secondary">Billing date</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-txt-secondary">Amount</th>
+                                        <th class="text-left px-4 py-3 text-xs font-medium text-txt-secondary">Plan</th>
+                                        <th class="px-4 py-3"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-stroke-soft">
+                                    <tr v-for="invoice in billingHistory" :key="invoice.id" class="hover:bg-fill-light/50 transition">
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2 text-sm text-txt-primary">
+                                                <svg class="w-4 h-4 text-txt-third" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+                                                </svg>
+                                                {{ invoice.name }}
+                                            </div>
+                                        </td>
+                                        <td class="px-4 py-3 text-sm text-txt-secondary">{{ invoice.date }}</td>
+                                        <td class="px-4 py-3 text-sm text-txt-secondary">{{ invoice.amount }}</td>
+                                        <td class="px-4 py-3 text-sm text-txt-secondary">{{ invoice.plan }}</td>
+                                        <td class="px-4 py-3">
+                                            <div class="flex items-center gap-2 justify-end">
+                                                <button @click="downloadInvoice(invoice)" class="flex items-center gap-1 px-3 py-1.5 border border-stroke-soft rounded-lg text-xs font-medium text-txt-primary hover:bg-fill-light transition">
+                                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                                    </svg>
+                                                    Download
+                                                </button>
+                                                <button class="text-txt-third hover:text-txt-secondary">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Security Subtab -->
-                    <div v-else-if="accountSubtab === 'security'" class="text-center py-12 text-txt-secondary">
-                        <svg class="w-12 h-12 mx-auto mb-4 text-stroke-medium" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-                        </svg>
-                        <h3 class="text-lg font-medium text-txt-primary mb-2">Security</h3>
-                        <p class="text-txt-secondary">Manage passwords, two-factor authentication, and sessions</p>
-                        <p class="text-sm text-txt-third mt-4">Coming soon...</p>
+                    <div v-else-if="accountSubtab === 'security'">
+                        <!-- Password & Security -->
+                        <div class="border border-stroke-soft rounded-lg p-6 mb-6">
+                            <div class="flex items-center gap-3 mb-1">
+                                <svg class="w-6 h-6 text-txt-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                </svg>
+                                <div>
+                                    <h3 class="text-base font-semibold text-txt-primary">Password & Security</h3>
+                                    <p class="text-sm text-txt-secondary">Update your password to keep your account secure</p>
+                                </div>
+                            </div>
+
+                            <!-- Current Password -->
+                            <div class="mt-6 mb-4">
+                                <label class="block text-sm font-semibold text-txt-primary mb-1.5">Current Password</label>
+                                <div class="relative">
+                                    <input v-model="security.currentPassword" :type="security.showCurrentPassword ? 'text' : 'password'" placeholder="Enter current password" class="w-full px-3 py-2 pr-10 border border-stroke-soft rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-dark/20 focus:border-brand-dark">
+                                    <button @click="security.showCurrentPassword = !security.showCurrentPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-txt-third hover:text-txt-secondary">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path v-if="!security.showCurrentPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path v-if="!security.showCurrentPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            <path v-if="security.showCurrentPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- New Password -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-semibold text-txt-primary mb-1.5">New Password</label>
+                                <div class="relative">
+                                    <input v-model="security.newPassword" :type="security.showNewPassword ? 'text' : 'password'" placeholder="Enter new password" class="w-full px-3 py-2 pr-10 border border-stroke-soft rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-dark/20 focus:border-brand-dark">
+                                    <button @click="security.showNewPassword = !security.showNewPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-txt-third hover:text-txt-secondary">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path v-if="!security.showNewPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path v-if="!security.showNewPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            <path v-if="security.showNewPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Confirm New Password -->
+                            <div class="mb-6">
+                                <label class="block text-sm font-semibold text-txt-primary mb-1.5">Confirm new Password</label>
+                                <div class="relative">
+                                    <input v-model="security.confirmPassword" :type="security.showConfirmPassword ? 'text' : 'password'" placeholder="Confirm new password" class="w-full px-3 py-2 pr-10 border border-stroke-soft rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-dark/20 focus:border-brand-dark">
+                                    <button @click="security.showConfirmPassword = !security.showConfirmPassword" class="absolute right-3 top-1/2 -translate-y-1/2 text-txt-third hover:text-txt-secondary">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path v-if="!security.showConfirmPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                            <path v-if="!security.showConfirmPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                                            <path v-if="security.showConfirmPassword" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Update Password Button -->
+                            <div class="flex justify-end">
+                                <button class="flex items-center gap-2 px-4 py-2 bg-brand-dark text-white rounded-lg text-sm font-medium hover:bg-brand-dark/90 transition">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                                    </svg>
+                                    Update Password
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Delete Account -->
+                        <div class="border border-red-200 rounded-lg p-6">
+                            <div class="flex items-center gap-3 mb-1">
+                                <svg class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                </svg>
+                                <div>
+                                    <h3 class="text-base font-semibold text-red-700">Delete Account</h3>
+                                    <p class="text-sm text-txt-secondary">Permanently delete your account and all associated data</p>
+                                </div>
+                            </div>
+
+                            <!-- Warning box -->
+                            <div class="bg-red-50 border border-red-200 rounded-lg p-4 mt-5 mb-5">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <svg class="w-4 h-4 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                                    </svg>
+                                    <span class="text-sm font-semibold text-red-700">Warning: This action cannot be undone</span>
+                                </div>
+                                <ul class="text-sm text-red-600 space-y-1 ml-6">
+                                    <li>All your business data will be permanently deleted</li>
+                                    <li>Team members will lose access to your business</li>
+                                    <li>Active subscriptions will be cancelled</li>
+                                    <li>You will not be able to recover your account</li>
+                                </ul>
+                            </div>
+
+                            <!-- Feedback textarea -->
+                            <div class="mb-5">
+                                <label class="block text-sm font-semibold text-txt-primary mb-1.5">Please tell us why you're leaving (optional)</label>
+                                <textarea v-model="security.deleteReason" rows="2" placeholder="Your feedback helps us improve..." class="w-full px-3 py-2 border border-stroke-soft rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-dark/20 focus:border-brand-dark resize-none"></textarea>
+                            </div>
+
+                            <!-- Delete Button -->
+                            <button class="flex items-center gap-2 px-4 py-2 bg-red-500 text-white rounded-lg text-sm font-medium hover:bg-red-600 transition">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                </svg>
+                                Delete Account
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -1765,6 +1996,27 @@
                         { id: 'tripadvisor', name: 'TripAdvisor', icon: 'M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z', connected: false },
                         { id: 'mercadolibre', name: 'Mercado Libre', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z', connected: false }
                     ],
+                    security: {
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: '',
+                        showCurrentPassword: false,
+                        showNewPassword: false,
+                        showConfirmPassword: false,
+                        deleteReason: ''
+                    },
+                    currentPlan: 'professional',
+                    billingPlans: [
+                        { id: 'basic', name: 'Basic Plan', subtitle: 'Perfect for small establishments', price: 29, popular: false, features: ['Up to 100 reservations/month', 'Up to 10 team members', 'Basic analytics', 'Email support', 'Single location'] },
+                        { id: 'professional', name: 'Professional Plan', subtitle: 'For growing businesses', price: 99, popular: true, features: ['Unlimited reservations', 'Up to 50 team members', 'Advanced analytics', 'Priority support', 'Up to 3 locations', 'Custom branding'] },
+                        { id: 'platine', name: 'Platine Plan', subtitle: 'For enterprise operations', price: 249, popular: false, features: ['Unlimited everything', 'Unlimited team members', 'Advanced analytics & AI insights', '24/7 dedicated support', 'Unlimited locations', 'Custom branding & white-label', 'API access', 'Custom integrations'] }
+                    ],
+                    billingHistory: [
+                        { id: 1, name: 'Invoice#0007-Dec 2025', date: 'Dec 1, 2025', amount: 'USD $40.00', plan: 'Basic plan' },
+                        { id: 2, name: 'Invoice#0007-Dec 2025', date: 'Dec 1, 2025', amount: 'USD $40.00', plan: 'Basic plan' },
+                        { id: 3, name: 'Invoice#0007-Dec 2025', date: 'Dec 1, 2025', amount: 'USD $40.00', plan: 'Basic plan' },
+                        { id: 4, name: 'Invoice#0007-Dec 2025', date: 'Dec 1, 2025', amount: 'USD $40.00', plan: 'Basic plan' }
+                    ],
                     teamSearchQuery: '',
                     selectedTeamMember: null,
                     teamMembers: [
@@ -1834,6 +2086,26 @@
                         this.teamMembers[idx] = JSON.parse(JSON.stringify(this.selectedTeamMember));
                     }
                     this.selectedTeamMember = null;
+                },
+                generateInvoiceHTML(invoice) {
+                    return `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${invoice.name}</title><style>body{font-family:'Helvetica Neue',Arial,sans-serif;margin:0;padding:40px;color:#1F2937;font-size:14px}h1{font-size:28px;margin:0 0 4px}.header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:40px}.badge{background:#1F2937;color:#fff;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600}.meta{text-align:right;color:#6B7280;font-size:13px}.meta strong{color:#1F2937;display:block;margin-bottom:2px}.divider{border:none;border-top:1px solid #E5E7EB;margin:24px 0}.section{margin-bottom:24px}.section-title{font-size:13px;text-transform:uppercase;letter-spacing:0.5px;color:#6B7280;margin-bottom:8px;font-weight:600}table{width:100%;border-collapse:collapse}th{text-align:left;padding:10px 12px;background:#F9FAFB;border-bottom:2px solid #E5E7EB;font-size:12px;text-transform:uppercase;letter-spacing:0.5px;color:#6B7280}td{padding:12px;border-bottom:1px solid #F3F4F6}.totals{margin-top:24px;display:flex;justify-content:flex-end}.totals table{width:280px}.totals td{border:none;padding:6px 12px}.totals .total-row td{font-weight:700;font-size:16px;border-top:2px solid #1F2937;padding-top:12px}.footer{margin-top:48px;text-align:center;color:#9CA3AF;font-size:12px}</style></head><body><div class="header"><div><h1>INVOICE</h1><p style="color:#6B7280;margin:0">${invoice.name}</p></div><div class="meta"><strong>JotPotato</strong>Av. Paseo de la Reforma 222<br>Col. Ju&aacute;rez, 06600 Ciudad de M&eacute;xico, Mexico<br>contact@jotpotato.com</div></div><hr class="divider"><div style="display:flex;justify-content:space-between;margin-bottom:32px"><div class="section"><div class="section-title">Bill To</div><strong>JotPotato</strong><br>Av. Paseo de la Reforma 222<br>Col. Ju&aacute;rez, 06600 Ciudad de M&eacute;xico, Mexico</div><div class="section" style="text-align:right"><div class="section-title">Invoice Details</div><strong>Invoice Date:</strong> ${invoice.date}<br><strong>Due Date:</strong> ${invoice.date}<br><strong>Status:</strong> <span class="badge">Paid</span></div></div><table><thead><tr><th>Description</th><th>Plan</th><th>Period</th><th style="text-align:right">Amount</th></tr></thead><tbody><tr><td>Monthly Subscription</td><td>${invoice.plan}</td><td>${invoice.date}</td><td style="text-align:right">${invoice.amount}</td></tr></tbody></table><div class="totals"><table><tr><td>Subtotal</td><td style="text-align:right">${invoice.amount}</td></tr><tr><td>Tax (0%)</td><td style="text-align:right">$0.00</td></tr><tr class="total-row"><td>Total</td><td style="text-align:right">${invoice.amount}</td></tr></table></div><div class="footer"><hr class="divider"><p>Thank you for your business!<br>JotPotato</p></div></body></html>`;
+                },
+                downloadInvoice(invoice) {
+                    const html = this.generateInvoiceHTML(invoice);
+                    const blob = new Blob([html], { type: 'text/html' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = invoice.name.replace(/[^a-zA-Z0-9-]/g, '_') + '.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                },
+                downloadAllInvoices() {
+                    this.billingHistory.forEach((invoice, i) => {
+                        setTimeout(() => this.downloadInvoice(invoice), i * 200);
+                    });
                 },
                 async fetchPaths() {
                     try {
