@@ -122,10 +122,11 @@
             <!-- Bottom Navigation -->
             <div class="flex flex-col items-center gap-2 mt-auto">
                 <!-- Notifications -->
-                <button class="w-10 h-10 rounded-xl flex items-center justify-center hover:bg-brand-dark/80 transition text-txt-third hover:text-white" title="Notifications">
+                <button @click="showNotifications = !showNotifications" class="relative w-10 h-10 rounded-xl flex items-center justify-center hover:bg-brand-dark/80 transition text-txt-third hover:text-white" title="Notifications">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
                     </svg>
+                    <span v-if="unreadNotificationCount > 0" class="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">{{ unreadNotificationCount }}</span>
                 </button>
                 <!-- Settings -->
                 <button @click="currentView = 'settings'" :class="['w-10 h-10 rounded-xl flex items-center justify-center transition', currentView === 'settings' ? 'bg-hi-blue-light text-hi-blue' : 'hover:bg-brand-dark/80 text-txt-third hover:text-white']" title="Settings">
@@ -136,6 +137,72 @@
                 </button>
             </div>
         </aside>
+
+        <!-- Notification Backdrop -->
+        <div v-if="showNotifications" @click="showNotifications = false" class="fixed inset-0 z-[55]"></div>
+
+        <!-- Notification Panel -->
+        <div v-if="showNotifications" class="fixed left-16 bottom-12 w-[420px] max-h-[600px] bg-bg-white rounded-xl shadow-2xl border border-stroke-soft z-[56] flex flex-col overflow-hidden">
+            <!-- Header -->
+            <div class="flex items-center justify-between px-5 pt-4 pb-2">
+                <div class="flex items-center gap-1.5">
+                    <h3 class="text-base font-semibold text-txt-primary">Inbox</h3>
+                    <svg class="w-4 h-4 text-txt-third" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>
+                </div>
+                <button class="text-txt-third hover:text-txt-secondary">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/>
+                    </svg>
+                </button>
+            </div>
+
+            <!-- Tabs -->
+            <div class="flex items-center gap-4 px-5 border-b border-stroke-soft">
+                <button @click="notifTab = 'all'"
+                    :class="notifTab === 'all' ? 'border-brand-dark text-txt-primary' : 'border-transparent text-txt-secondary'"
+                    class="flex items-center gap-1.5 pb-2.5 border-b-2 text-sm font-medium transition -mb-px">
+                    All
+                    <span class="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">{{ notifications.length }}</span>
+                </button>
+                <button @click="notifTab = 'alerts'"
+                    :class="notifTab === 'alerts' ? 'border-brand-dark text-txt-primary' : 'border-transparent text-txt-secondary'"
+                    class="flex items-center gap-1.5 pb-2.5 border-b-2 text-sm font-medium transition -mb-px">
+                    Alerts
+                    <span class="px-1.5 py-0.5 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[18px] text-center">{{ alertNotifications.length }}</span>
+                </button>
+            </div>
+
+            <!-- Notification List -->
+            <div class="flex-1 overflow-y-auto divide-y divide-stroke-soft">
+                <div v-for="notif in filteredNotifications" :key="notif.id" class="px-5 py-4 hover:bg-fill-light/50 transition">
+                    <div class="flex gap-3">
+                        <!-- Icon -->
+                        <div :class="notif.iconBg" class="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0">
+                            <svg class="w-5 h-5" :class="notif.iconColor" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="notif.icon"/>
+                            </svg>
+                        </div>
+                        <!-- Content -->
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-start justify-between gap-2">
+                                <h4 class="text-sm font-semibold text-txt-primary leading-snug">{{ notif.title }}</h4>
+                                <span v-if="notif.unread" class="w-2 h-2 bg-brand-dark rounded-full flex-shrink-0 mt-1.5"></span>
+                            </div>
+                            <p class="text-xs text-txt-third mt-0.5 leading-relaxed">{{ notif.description }}</p>
+                            <p class="text-xs text-txt-third/60 mt-1.5">{{ notif.time }}</p>
+                            <button @click="notif.unread = false" class="mt-2 px-4 py-1.5 bg-brand-dark text-white text-xs font-medium rounded-lg hover:bg-brand-dark/90 transition">
+                                {{ notif.action }}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div v-if="filteredNotifications.length === 0" class="px-5 py-12 text-center text-sm text-txt-third">
+                    No notifications
+                </div>
+            </div>
+        </div>
 
         <!-- Main Content Area -->
         <div class="flex-1 md:ml-16">
@@ -2075,6 +2142,26 @@
                     API_BASE: '/api',
                     // Mobile
                     mobileMenuOpen: false,
+                    // Notifications
+                    showNotifications: false,
+                    notifTab: 'all',
+                    notifications: [
+                        // Team & Collaboration
+                        { id: 1, category: 'team', title: 'Sarah mentioned you in #product-team', description: 'Can you review the latest path updates for Q1 initiatives?', time: '2 minutes ago', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z', iconBg: 'bg-blue-50', iconColor: 'text-blue-500', action: 'View message', unread: true, alert: false },
+                        { id: 2, category: 'team', title: 'Team member off-track: Alex Johnson', description: 'Alex has missed 3 deadlines this week and may need support on the customer onboarding path.', time: '1 hour ago', icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z', iconBg: 'bg-red-50', iconColor: 'text-red-500', action: 'Check status', unread: true, alert: true },
+                        { id: 3, category: 'team', title: 'Your weekly performance summary', description: 'You completed 12 tasks this week, 20% above your average. Great work!', time: 'Today at 9:00 AM', icon: 'M13 7h8m0 0v8m0-8l-8 8-4-4-6 6', iconBg: 'bg-green-50', iconColor: 'text-green-500', action: 'View details', unread: true, alert: false },
+                        { id: 4, category: 'team', title: 'To-do reminder: 5 tasks pending', description: "You have 5 pending tasks for today. Don't forget to update the integration docs.", time: 'Today at 8:00 AM', icon: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4', iconBg: 'bg-amber-50', iconColor: 'text-amber-500', action: 'View tasks', unread: true, alert: true },
+                        // Paths Lifecycle
+                        { id: 5, category: 'paths', title: 'New path assigned: Customer Feedback Loop', description: 'Marcus assigned you to lead the Customer Feedback Loop path with a 2-week timeline.', time: 'Yesterday at 7:30 PM', icon: 'M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z', iconBg: 'bg-indigo-50', iconColor: 'text-indigo-500', action: 'View path', unread: true, alert: false },
+                        { id: 6, category: 'paths', title: 'Path completed: Menu Optimization', description: 'The Menu Optimization path has been marked as completed with all 18 action items done.', time: 'Yesterday at 3:15 PM', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', iconBg: 'bg-green-50', iconColor: 'text-green-500', action: 'View summary', unread: false, alert: false },
+                        { id: 7, category: 'paths', title: 'New recommended path from AI', description: 'Based on recent feedback patterns, we recommend starting a "Staff Training Refresh" path.', time: '2 days ago', icon: 'M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z', iconBg: 'bg-purple-50', iconColor: 'text-purple-500', action: 'Review path', unread: true, alert: false },
+                        // Initiatives & Tasks
+                        { id: 8, category: 'tasks', title: 'Initiative overdue: Kitchen Workflow', description: 'The Kitchen Workflow initiative was due yesterday. 3 action items remain incomplete.', time: '2 days ago', icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z', iconBg: 'bg-red-50', iconColor: 'text-red-500', action: 'View initiative', unread: true, alert: true },
+                        // Integrations & System
+                        { id: 9, category: 'integrations', title: 'Integration failed: Google Reviews', description: 'The Google Reviews sync failed due to an authentication error. Please reconnect.', time: '3 days ago', icon: 'M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1', iconBg: 'bg-red-50', iconColor: 'text-red-500', action: 'Reconnect', unread: false, alert: true },
+                        // Customer Experience
+                        { id: 10, category: 'customer', title: 'Customer satisfaction dropped', description: 'Average satisfaction score dropped 8% this week. Main concerns: wait times and food temperature.', time: '3 days ago', icon: 'M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z', iconBg: 'bg-amber-50', iconColor: 'text-amber-500', action: 'View report', unread: true, alert: true }
+                    ],
                     // AI Agent
                     showAIAgent: false,
                     aiMessages: [],
@@ -2223,6 +2310,16 @@
                         m.role.toLowerCase().includes(q) ||
                         m.employeeId.toLowerCase().includes(q)
                     );
+                },
+                unreadNotificationCount() {
+                    return this.notifications.filter(n => n.unread).length;
+                },
+                alertNotifications() {
+                    return this.notifications.filter(n => n.alert);
+                },
+                filteredNotifications() {
+                    if (this.notifTab === 'alerts') return this.alertNotifications;
+                    return this.notifications;
                 }
             },
             methods: {
